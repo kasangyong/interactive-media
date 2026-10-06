@@ -8,8 +8,9 @@
   --font-body: 'Pretendard Variable', Pretendard, 'Archivo', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
-  --fs-display: clamp(52px, 11vw, 220px);
-  --fs-h2: clamp(52px, 9vw, 168px);
+  /* "INTERACTIVE" (폭 ≈ 8.2em) 가 거터 안에 들어가도록 */
+  --fs-display: min(220px, calc((100vw - 2 * var(--gutter)) / 9));
+  --fs-h2: min(168px, calc((100vw - 2 * var(--gutter)) / 8.4));
   --fs-h3: clamp(26px, 2.6vw, 40px);
   --fs-lead: clamp(17px, 1.35vw, 21px);
   --fs-body: 16px;

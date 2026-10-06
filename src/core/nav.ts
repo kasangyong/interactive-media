@@ -32,11 +32,14 @@ export function initNav(scroll: ScrollController): void {
   );
   document.querySelectorAll('main > section[id]').forEach((s) => io.observe(s));
 
+  nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
+
   let lastY = 0;
   scroll.onScroll((y) => {
     const max = document.documentElement.scrollHeight - window.innerHeight;
     if (bar) bar.style.transform = `scaleX(${max > 0 ? y / max : 0})`;
-    nav.classList.toggle('is-hidden', y > lastY && y > window.innerHeight * 0.5);
+    const focused = nav.contains(document.activeElement);
+    nav.classList.toggle('is-hidden', !focused && y > lastY && y > window.innerHeight * 0.5);
     nav.classList.toggle('is-solid', y > window.innerHeight * 0.8);
     lastY = y;
   });
