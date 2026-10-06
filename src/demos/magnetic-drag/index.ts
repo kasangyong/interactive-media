@@ -126,7 +126,9 @@ export function create(container: HTMLElement): Demo {
       b.held = false;
       b.el.classList.remove('is-held');
       const h = b.hist;
-      if (h.length >= 2) {
+      // 멈췄다가 놓으면 던지지 않는다
+      const still = h.length > 0 && performance.now() - h[h.length - 1].t > 80;
+      if (h.length >= 2 && !still) {
         const a = h[0];
         const z = h[h.length - 1];
         const dt = Math.max(16, z.t - a.t) / 1000;

@@ -1,6 +1,7 @@
 import { createLoop } from '../../core/loop';
 import { createStageGL } from '../../core/stage';
 import type { Demo } from '../../core/types';
+import { WebGLUnavailableError } from '../../core/types';
 
 /*
  * Stable Fluids (Jos Stam) 를 WebGL2 프래그먼트 셰이더로 구현.
@@ -139,14 +140,18 @@ interface DoubleFBO {
 export function create(container: HTMLElement): Demo {
   const stage = createStageGL(container);
   const { gl, canvas } = stage;
-  const floatExt = gl.getExtension('EXT_color_buffer_float');
-  gl.getExtension('OES_texture_float_linear');
-  const halfType = floatExt ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE;
-  const fmtRGBA = floatExt ? gl.RGBA16F : gl.RGBA8;
-  const fmtRG = floatExt ? gl.RG16F : gl.RGBA8;
-  const fmtR = floatExt ? gl.R16F : gl.RGBA8;
-  const baseRG = floatExt ? gl.RG : gl.RGBA;
-  const baseR = floatExt ? gl.RED : gl.RGBA;
+  // 속도장은 음수를 저장해야 하므로 반정밀도 렌더 타깃이 필수
+  const floatExt = gl.getExtension('EXT_color_buffer_float') ?? gl.getExtension('EXT_color_buffer_half_float');
+  if (!floatExt) {
+    stage.dispose();
+    throw new WebGLUnavailableError();
+  }
+  const halfType = gl.HALF_FLOAT;
+  const fmtRGBA = gl.RGBA16F;
+  const fmtRG = gl.RG16F;
+  const fmtR = gl.R16F;
+  const baseRG = gl.RG;
+  const baseR = gl.RED;
 
   function compile(type: number, src: string): WebGLShader {
     const s = gl.createShader(type);
@@ -202,6 +207,7 @@ export function create(container: HTMLElement): Demo {
     gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, halfType, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new WebGLUnavailableError();
     gl.viewport(0, 0, w, h);
     gl.clear(gl.COLOR_BUFFER_BIT);
     return {
@@ -400,6 +406,7 @@ export function create(container: HTMLElement): Demo {
   const onLeave = () => (last = null);
   container.addEventListener('pointermove', onMove);
   container.addEventListener('pointerleave', onLeave);
+  container.addEventListener('pointercancel', onLeave);
 
   initFramebuffers();
   let w0 = stage.width;
@@ -440,6 +447,7 @@ export function create(container: HTMLElement): Demo {
       loop.stop();
       container.removeEventListener('pointermove', onMove);
       container.removeEventListener('pointerleave', onLeave);
+      container.removeEventListener('pointercancel', onLeave);
       freeAll();
       stage.dispose();
     },

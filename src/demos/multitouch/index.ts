@@ -48,8 +48,11 @@ export function create(container: HTMLElement): Demo {
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
 
+  let lastAngle = 0;
   const snapshot = () => {
-    start = { t: { ...target }, pts: [...pointers.values()].slice(0, 2).map((p) => ({ ...p })) };
+    const pts = [...pointers.values()].slice(0, 2).map((p) => ({ ...p }));
+    start = { t: { ...target }, pts };
+    if (pts.length >= 2) lastAngle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
   };
 
   const onDown = (e: PointerEvent) => {
@@ -69,12 +72,13 @@ export function create(container: HTMLElement): Demo {
     } else if (pts.length >= 2 && s0.length >= 2) {
       const d0 = Math.hypot(s0[1].x - s0[0].x, s0[1].y - s0[0].y) || 1;
       const d1 = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-      const a0 = Math.atan2(s0[1].y - s0[0].y, s0[1].x - s0[0].x);
       const a1 = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
       const m0 = { x: (s0[0].x + s0[1].x) / 2, y: (s0[0].y + s0[1].y) / 2 };
       const m1 = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
       target.s = clampScale(start.t.s * (d1 / d0));
-      target.r = start.t.r + (a1 - a0);
+      // 프레임 간 증분을 ±π 로 정규화해 누적 → 반 바퀴 이상 돌려도 튀지 않는다
+      target.r += Math.atan2(Math.sin(a1 - lastAngle), Math.cos(a1 - lastAngle));
+      lastAngle = a1;
       target.x = start.t.x + m1.x - m0.x;
       target.y = start.t.y + m1.y - m0.y;
     }
