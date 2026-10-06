@@ -59,10 +59,18 @@ export async function create(container: HTMLElement): Promise<Demo> {
   for (let i = 0; i < COUNT; i++) delay[i] = Math.random();
 
   const build = () => {
+    const first = targets.length === 0;
     targets = WORDS.map((w) => sampleWord(w, stage.width, stage.height));
-    pos.set(targets[0]);
+    // 첫 구축 때만 위치를 초기화 — 리사이즈 시에는 점들이 새 자리로 흘러가게 둔다
+    if (first) pos.set(targets[0]);
   };
-  stage.onResize(build);
+  build();
+  // 리사이즈 중에는 샘플링 비용이 크므로 멈춘 뒤 한 번만 재구축
+  let resizeTimer = 0;
+  stage.onResize(() => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(build, 180);
+  });
 
   let p = 0;
   const loop = createLoop((dt, time) => {
@@ -120,6 +128,7 @@ export async function create(container: HTMLElement): Promise<Demo> {
     resume: () => loop.start(),
     unmount: () => {
       loop.stop();
+      window.clearTimeout(resizeTimer);
       pointer.dispose();
       stage.dispose();
     },

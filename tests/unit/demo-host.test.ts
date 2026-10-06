@@ -135,6 +135,24 @@ describe('DemoHost lifecycle', () => {
     expect(host.stateOf('good')).toBe('active');
   });
 
+  test('unlocking one gate unlocks other demos with the same requirement', async () => {
+    const a = entry('a', ['audio-gesture']);
+    const b = entry('b', ['audio-gesture']);
+    const cam = entry('cam', ['camera']);
+    const host = new DemoHost({ a, b, cam });
+    const [ea, eb, ec] = [stage('a'), stage('b'), stage('cam')];
+    [ea, eb, ec].forEach((el) => host.observe(el));
+    [ea, eb, ec].forEach((el) => fire(near(), el, true));
+    await flush();
+    ea.querySelector<HTMLButtonElement>('.demo-gate')!.click();
+    await flush();
+    expect(a.create).toHaveBeenCalledTimes(1);
+    expect(b.create).toHaveBeenCalledTimes(1);
+    expect(eb.querySelector('.demo-gate')).toBeNull();
+    expect(cam.create).not.toHaveBeenCalled();
+    expect(ec.querySelector('.demo-gate')).not.toBeNull();
+  });
+
   test('gated demo waits for click, then creates and calls onUnlock', async () => {
     const e = entry('cam', ['camera']);
     const onUnlock = vi.fn();

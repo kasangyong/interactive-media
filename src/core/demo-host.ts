@@ -8,7 +8,6 @@ interface Slot {
   el: HTMLElement;
   state: DemoState;
   near: boolean;
-  unlocked: boolean;
   token: number;
   demo?: Demo;
   mountEl?: HTMLElement;
@@ -34,6 +33,8 @@ const GATE_LABEL: Record<Requirement, string> = {
 
 export class DemoHost {
   private slots = new Map<string, Slot>();
+  /** 사용자가 한 번 허용한 요구사항 — 같은 요구사항의 다른 데모도 함께 풀린다 */
+  private granted = new Set<Requirement>();
   private byEl = new Map<Element, Slot>();
   private nearIO: IntersectionObserver;
   private farIO: IntersectionObserver;
@@ -63,7 +64,7 @@ export class DemoHost {
     const id = el.dataset.demo;
     if (!id || !this.registry[id]) throw new Error(`Unknown demo: ${id}`);
     if (this.slots.has(id)) throw new Error(`Duplicate demo: ${id}`);
-    const slot: Slot = { id, el, state: 'idle', near: false, unlocked: false, token: 0 };
+    const slot: Slot = { id, el, state: 'idle', near: false, token: 0 };
     this.slots.set(id, slot);
     this.byEl.set(el, slot);
     this.nearIO.observe(el);
@@ -92,6 +93,10 @@ export class DemoHost {
     return this.requires(slot).filter((r) => GATED.includes(r));
   }
 
+  private needsGate(slot: Slot): boolean {
+    return this.gatedRequires(slot).some((r) => !this.granted.has(r));
+  }
+
   private isGL(slot: Slot): boolean {
     return this.requires(slot).includes('webgl');
   }
@@ -109,7 +114,7 @@ export class DemoHost {
       slot.demo.resume();
       slot.state = 'active';
     } else if (slot.state === 'idle') {
-      if (this.gatedRequires(slot).length > 0 && !slot.unlocked) this.renderGate(slot);
+      if (this.needsGate(slot)) this.renderGate(slot);
       else void this.start(slot);
     }
   }
@@ -213,11 +218,14 @@ export class DemoHost {
     btn.dataset.cursor = 'click';
     btn.innerHTML = `<span class="demo-gate__dot"></span><span>${GATE_LABEL[reqs[0]]}</span>`;
     btn.addEventListener('click', () => {
-      slot.unlocked = true;
+      reqs.forEach((r) => this.granted.add(r));
       this.onUnlock?.(reqs);
-      btn.remove();
-      slot.state = 'idle';
-      if (slot.near) void this.start(slot);
+      for (const s of this.slots.values()) {
+        if (s.state !== 'gated' || this.needsGate(s)) continue;
+        s.el.querySelector('.demo-gate')?.remove();
+        s.state = 'idle';
+        if (s.near) void this.start(s);
+      }
     });
     slot.el.appendChild(btn);
   }

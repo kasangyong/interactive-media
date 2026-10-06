@@ -90,7 +90,7 @@
   .sty {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
-    padding-top: calc(var(--nav-h) + 200px);
+    padding-top: calc(var(--nav-h) + 150px);
   }
   .sty__steps {
     height: 180px;

@@ -361,5 +361,12 @@
   }
   .demo-sticky .demo-info {
     max-width: calc(100% - var(--gutter) * 2);
+    padding: 14px 16px;
+    gap: 8px;
+  }
+  /* 모바일 sticky 패널은 제목과 조작 안내만 — 장면을 가리지 않도록 */
+  .demo-sticky .demo-desc,
+  .demo-sticky .demo-apis {
+    display: none;
   }
 }
