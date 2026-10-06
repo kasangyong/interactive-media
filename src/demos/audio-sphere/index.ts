@@ -95,7 +95,7 @@ export function create(container: HTMLElement): Demo {
   });
 
   // 비주얼
-  const stage = createStageThree(container, { alpha: true });
+  const stage = createStageThree(container, { alpha: true, dprCap: 1.5 });
   const { renderer } = stage;
   const pointer = trackPointer(container);
   const scene = new THREE.Scene();
@@ -116,7 +116,8 @@ export function create(container: HTMLElement): Demo {
     uRim: { value: new THREE.Color('#ffe2d4') },
     uOpacity: { value: 1 },
   };
-  const geo = new THREE.IcosahedronGeometry(1.3, 72);
+  // detail 32 ≈ 6.5만 정점 (72 는 32만 — 정점마다 노이즈 6회라 GPU 부하가 컸다)
+  const geo = new THREE.IcosahedronGeometry(1.3, 32);
   const mat = new THREE.ShaderMaterial({ vertexShader: DISPLACE_VERT, fragmentShader: IRIDESCENT_FRAG, uniforms });
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);

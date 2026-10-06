@@ -24,12 +24,13 @@ export interface StageGL extends BaseStage {
   gl: WebGL2RenderingContext;
 }
 
-export const maxDpr = () => Math.min(window.devicePixelRatio || 1, 2);
+export const maxDpr = (cap = 2) => Math.min(window.devicePixelRatio || 1, cap);
 
 /** 컨테이너를 꽉 채우는 캔버스 + ResizeObserver 공통 처리 */
 function baseStage(
   container: HTMLElement,
   applySize: (canvas: HTMLCanvasElement, w: number, h: number, dpr: number) => void,
+  dprCap = 2,
 ): BaseStage {
   const canvas = document.createElement('canvas');
   canvas.className = 'demo-canvas';
@@ -39,7 +40,7 @@ function baseStage(
     canvas,
     width: 1,
     height: 1,
-    dpr: maxDpr(),
+    dpr: maxDpr(dprCap),
     onResize: (cb) => {
       cbs.push(cb);
       cb(stage.width, stage.height, stage.dpr);
@@ -52,7 +53,7 @@ function baseStage(
   const measure = () => {
     const w = Math.max(1, container.clientWidth);
     const h = Math.max(1, container.clientHeight);
-    const dpr = maxDpr();
+    const dpr = maxDpr(dprCap);
     if (w === stage.width && h === stage.height && dpr === stage.dpr) return;
     stage.width = w;
     stage.height = h;
@@ -67,13 +68,17 @@ function baseStage(
   return stage;
 }
 
-export function createStage2D(container: HTMLElement): Stage2D {
+export function createStage2D(container: HTMLElement, opts: { dprCap?: number } = {}): Stage2D {
   let ctx: CanvasRenderingContext2D | null = null;
-  const base = baseStage(container, (canvas, w, h, dpr) => {
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
-  });
+  const base = baseStage(
+    container,
+    (canvas, w, h, dpr) => {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+    },
+    opts.dprCap,
+  );
   ctx = base.canvas.getContext('2d');
   if (!ctx) throw new Error('2D context unavailable');
   ctx.setTransform(base.dpr, 0, 0, base.dpr, 0, 0);
@@ -82,13 +87,18 @@ export function createStage2D(container: HTMLElement): Stage2D {
 
 export function createStageThree(
   container: HTMLElement,
-  opts: { alpha?: boolean; antialias?: boolean } = {},
+  /** dprCap: 화면 전체를 덮는 무거운 장면은 1.5 로 낮춰 픽셀 수를 줄인다 */
+  opts: { alpha?: boolean; antialias?: boolean; dprCap?: number } = {},
 ): StageThree {
   let renderer: THREE.WebGLRenderer | null = null;
-  const base = baseStage(container, (_canvas, w, h, dpr) => {
-    renderer?.setPixelRatio(dpr);
-    renderer?.setSize(w, h, false);
-  });
+  const base = baseStage(
+    container,
+    (_canvas, w, h, dpr) => {
+      renderer?.setPixelRatio(dpr);
+      renderer?.setSize(w, h, false);
+    },
+    opts.dprCap,
+  );
   try {
     renderer = new THREE.WebGLRenderer({
       canvas: base.canvas,

@@ -19,7 +19,7 @@ interface Marble {
 }
 
 export function create(container: HTMLElement): Demo {
-  const stage = createStageThree(container, { alpha: true });
+  const stage = createStageThree(container, { alpha: true, dprCap: 1.5 });
   const { renderer } = stage;
   renderer.shadowMap.enabled = true;
   const pointer = trackPointer(container);

@@ -14,7 +14,7 @@ export function initHero(scroll: ScrollController): Promise<void> {
 
   let stage;
   try {
-    stage = createStageThree(container, { alpha: true });
+    stage = createStageThree(container, { alpha: true, dprCap: 1.5 });
   } catch {
     container.classList.add('is-fallback');
     return Promise.resolve();
@@ -36,7 +36,7 @@ export function initHero(scroll: ScrollController): Promise<void> {
     uOpacity: { value: 1 },
   };
   const blob = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.35, 64),
+    new THREE.IcosahedronGeometry(1.35, 32),
     new THREE.ShaderMaterial({ vertexShader: DISPLACE_VERT, fragmentShader: IRIDESCENT_FRAG, uniforms, transparent: true }),
   );
   const group = new THREE.Group();

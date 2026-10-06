@@ -12,7 +12,8 @@ const CELL = 9;
 type Mode = 'flow' | 'life';
 
 export function create(container: HTMLElement): Demo {
-  const stage = createStage2D(container);
+  // 풀블리드 + 매 프레임 전면 반투명 채우기라 픽셀 수를 줄인다
+  const stage = createStage2D(container, { dprCap: 1.5 });
   const g = stage.ctx;
   const pointer = trackPointer(container);
   let noise = createNoise3D();
