@@ -1,11 +1,15 @@
 import type { Registry } from '../core/types';
+import { meta as audioSphere } from './audio-sphere/meta';
 import { meta as cursorTrail } from './cursor-trail/meta';
 import { meta as fluid } from './fluid/meta';
 import { meta as magneticDrag } from './magnetic-drag/meta';
+import { meta as micVisualizer } from './mic-visualizer/meta';
 import { meta as multitouch } from './multitouch/meta';
 import { meta as parallax } from './parallax/meta';
 import { meta as scrollCamera } from './scroll-camera/meta';
 import { meta as scrollytelling } from './scrollytelling/meta';
+import { meta as spatialAudio } from './spatial-audio/meta';
+import { meta as synthPad } from './synth-pad/meta';
 import { meta as textMorph } from './text-morph/meta';
 
 /** 데모 id → 메타 + 지연 로드. 순서가 곧 페이지 배치 순서 */
@@ -18,4 +22,8 @@ export const registry: Registry = {
   [parallax.id]: { meta: parallax, load: () => import('./parallax') },
   [scrollytelling.id]: { meta: scrollytelling, load: () => import('./scrollytelling') },
   [textMorph.id]: { meta: textMorph, load: () => import('./text-morph') },
+  [synthPad.id]: { meta: synthPad, load: () => import('./synth-pad') },
+  [audioSphere.id]: { meta: audioSphere, load: () => import('./audio-sphere') },
+  [micVisualizer.id]: { meta: micVisualizer, load: () => import('./mic-visualizer') },
+  [spatialAudio.id]: { meta: spatialAudio, load: () => import('./spatial-audio') },
 };

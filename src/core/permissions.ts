@@ -46,6 +46,18 @@ export async function requestMotion(): Promise<PermissionResult<true>> {
   }
 }
 
+let motionPromise: Promise<PermissionResult<true>> | null = null;
+
+/** 게이트 클릭 핸들러 안에서 호출 — iOS 권한 팝업은 제스처 안에서만 뜬다 */
+export function primeMotion(): void {
+  motionPromise = requestMotion();
+}
+
+/** primeMotion 이 이미 요청했으면 그 결과를, 아니면 새로 요청 */
+export function getMotionPermission(): Promise<PermissionResult<true>> {
+  return motionPromise ?? requestMotion();
+}
+
 export function stopStream(stream: MediaStream | null | undefined): void {
   stream?.getTracks().forEach((t) => t.stop());
 }

@@ -1,0 +1,63 @@
+.synth {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.synth__scope {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.synth__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 1.2vw, 14px);
+  width: min(86%, 440px);
+  aspect-ratio: 1;
+  touch-action: none;
+}
+.synth__pad {
+  position: relative;
+  border: 1.5px solid var(--fg);
+  border-radius: 14px;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 10px;
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+.synth__pad:active {
+  transform: scale(0.96);
+}
+.synth__pad::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--fg);
+  opacity: 0;
+}
+.synth__pad.is-hit::after {
+  animation: pad-hit 0.6s var(--ease-out);
+}
+@keyframes pad-hit {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.synth__pad span {
+  position: relative;
+  z-index: 1;
+  mix-blend-mode: difference;
+  color: #fff;
+}
