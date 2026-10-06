@@ -15,7 +15,7 @@ uniform vec2 uVideoRes;
 uniform float uTime;
 uniform int uMode;
 uniform vec2 uPointer;
-in vec2 vUv;
+varying vec2 vUv;
 
 // 컨테이너를 꽉 채우도록(cover) + 좌우 반전(거울)
 vec2 coverUv(vec2 uv){
@@ -99,7 +99,7 @@ void main(){
 }`;
 
 const VERT = /* glsl */ `
-out vec2 vUv;
+varying vec2 vUv;
 void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 
 export async function create(container: HTMLElement): Promise<Demo> {
@@ -134,7 +134,9 @@ export async function create(container: HTMLElement): Promise<Demo> {
     uMode: { value: 0 },
     uPointer: { value: new THREE.Vector2(0.5, 0.5) },
   };
-  const mat = new THREE.ShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: VERT, fragmentShader: FRAG, uniforms });
+  // glslVersion 을 지정하지 않아도 WebGL2 에서는 #version 300 es 로 컴파일되어
+  // round / 정수 비트 연산을 쓸 수 있고, gl_FragColor·varying 매핑도 three 가 해 준다
+  const mat = new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms });
   const geo = new THREE.PlaneGeometry(2, 2);
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(geo, mat));

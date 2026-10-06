@@ -14,6 +14,8 @@ import { initReveal } from './core/reveal';
 import { initScroll } from './core/scroll';
 import { registry } from './demos/registry';
 import { initHero } from './sections/hero';
+import { initOutro } from './sections/outro';
+import { initTimeline } from './sections/timeline';
 
 declare global {
   interface Window {
@@ -35,6 +37,8 @@ function boot() {
   initCursor();
   initNav(scroll);
   initReveal(scroll);
+  initTimeline();
+  initOutro();
   const heroReady = initHero(scroll);
   void runLoader(scroll, Promise.all([document.fonts.ready, heroReady]));
 
