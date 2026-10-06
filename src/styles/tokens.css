@@ -8,7 +8,7 @@
   --font-body: 'Pretendard Variable', Pretendard, 'Archivo', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
-  --fs-display: clamp(64px, 13.5vw, 260px);
+  --fs-display: clamp(52px, 11vw, 220px);
   --fs-h2: clamp(52px, 9vw, 168px);
   --fs-h3: clamp(26px, 2.6vw, 40px);
   --fs-lead: clamp(17px, 1.35vw, 21px);
