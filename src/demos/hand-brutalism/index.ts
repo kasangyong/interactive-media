@@ -192,6 +192,7 @@ export function create(container: HTMLElement): Demo {
   let lastVideoTime = -1;
   let hands: Pt[][] = [];
   let lastAngle: number | null = null;
+  let lastHandCount = 0;
 
   const useMouse = (reason: string) => {
     mode = 'mouse';
@@ -232,6 +233,7 @@ export function create(container: HTMLElement): Demo {
     video.playsInline = true;
     video.srcObject = stream;
     await video.play().catch(() => undefined);
+    if (disposed) return;
     pipStatus.textContent = '손 인식 모델 불러오는 중…';
     try {
       const lm = await loadHandLandmarker(2);
@@ -271,6 +273,9 @@ export function create(container: HTMLElement): Demo {
       return false;
     }
     pipStatus.textContent = '';
+    // 손 개수가 바뀌면 '오른손' 이 다른 손으로 바뀔 수 있으므로 회전 기준 각도를 초기화
+    if (hands.length !== lastHandCount) lastAngle = null;
+    lastHandCount = hands.length;
     // 화면 왼쪽 손 = 디더, 오른쪽 손 = 회전 (손 라벨 대신 위치로 구분해 혼동을 없앤다)
     const sorted = [...hands].sort((a, b) => a[0].x - b[0].x);
     const left = sorted.length === 2 ? sorted[0] : sorted[0][0].x < 0.5 ? sorted[0] : null;
