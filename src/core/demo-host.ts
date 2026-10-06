@@ -62,6 +62,7 @@ export class DemoHost {
   observe(el: HTMLElement): void {
     const id = el.dataset.demo;
     if (!id || !this.registry[id]) throw new Error(`Unknown demo: ${id}`);
+    if (this.slots.has(id)) throw new Error(`Duplicate demo: ${id}`);
     const slot: Slot = { id, el, state: 'idle', near: false, unlocked: false, token: 0 };
     this.slots.set(id, slot);
     this.byEl.set(el, slot);
@@ -195,6 +196,9 @@ export class DemoHost {
       }
       if (!farthest) break;
       this.unload(farthest);
+      // IO 는 상태 변화 때만 알리므로, 다시 들어올 때 재로드되도록 near 해제
+      farthest.near = false;
+      farthest.el.classList.remove('is-near');
       gl.splice(gl.indexOf(farthest), 1);
     }
   }

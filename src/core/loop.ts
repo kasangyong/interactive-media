@@ -10,9 +10,11 @@ export function createLoop(tick: (dt: number, time: number) => void): Loop {
   let last = 0;
   let running = false;
   const frame = (now: number) => {
+    if (!running) return;
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     tick(dt, now / 1000);
+    if (!running) return;
     raf = requestAnimationFrame(frame);
   };
   return {

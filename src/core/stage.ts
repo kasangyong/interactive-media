@@ -27,7 +27,10 @@ export interface StageGL extends BaseStage {
 export const maxDpr = () => Math.min(window.devicePixelRatio || 1, 2);
 
 /** 컨테이너를 꽉 채우는 캔버스 + ResizeObserver 공통 처리 */
-function baseStage(container: HTMLElement, applySize: (w: number, h: number, dpr: number) => void): BaseStage {
+function baseStage(
+  container: HTMLElement,
+  applySize: (canvas: HTMLCanvasElement, w: number, h: number, dpr: number) => void,
+): BaseStage {
   const canvas = document.createElement('canvas');
   canvas.className = 'demo-canvas';
   container.appendChild(canvas);
@@ -54,7 +57,7 @@ function baseStage(container: HTMLElement, applySize: (w: number, h: number, dpr
     stage.width = w;
     stage.height = h;
     stage.dpr = dpr;
-    applySize(w, h, dpr);
+    applySize(canvas, w, h, dpr);
     for (const cb of cbs) cb(w, h, dpr);
   };
   const ro = new ResizeObserver(measure);
@@ -66,9 +69,9 @@ function baseStage(container: HTMLElement, applySize: (w: number, h: number, dpr
 
 export function createStage2D(container: HTMLElement): Stage2D {
   let ctx: CanvasRenderingContext2D | null = null;
-  const base = baseStage(container, (w, h, dpr) => {
-    base.canvas.width = Math.round(w * dpr);
-    base.canvas.height = Math.round(h * dpr);
+  const base = baseStage(container, (canvas, w, h, dpr) => {
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
     ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
   });
   ctx = base.canvas.getContext('2d');
@@ -82,7 +85,7 @@ export function createStageThree(
   opts: { alpha?: boolean; antialias?: boolean } = {},
 ): StageThree {
   let renderer: THREE.WebGLRenderer | null = null;
-  const base = baseStage(container, (w, h, dpr) => {
+  const base = baseStage(container, (_canvas, w, h, dpr) => {
     renderer?.setPixelRatio(dpr);
     renderer?.setSize(w, h, false);
   });
@@ -113,9 +116,9 @@ export function createStageThree(
 }
 
 export function createStageGL(container: HTMLElement): StageGL {
-  const base = baseStage(container, (w, h, dpr) => {
-    base.canvas.width = Math.round(w * dpr);
-    base.canvas.height = Math.round(h * dpr);
+  const base = baseStage(container, (canvas, w, h, dpr) => {
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
   });
   const gl = base.canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: false, antialias: false });
   if (!gl) {
