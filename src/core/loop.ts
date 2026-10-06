@@ -11,7 +11,8 @@ export function createLoop(tick: (dt: number, time: number) => void): Loop {
   let running = false;
   const frame = (now: number) => {
     if (!running) return;
-    const dt = Math.min((now - last) / 1000, 0.05);
+    // rAF 타임스탬프가 start() 시점보다 앞설 수 있어 음수를 막는다
+    const dt = Math.min(Math.max(0, (now - last) / 1000), 0.05);
     last = now;
     tick(dt, now / 1000);
     if (!running) return;

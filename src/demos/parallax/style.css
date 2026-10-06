@@ -1,0 +1,33 @@
+.plx {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.plx__layer {
+  position: absolute;
+  will-change: transform;
+}
+.plx__layer img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 30px 60px -30px rgba(10, 10, 30, 0.45);
+}
+.plx__text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: min(30vw, 420px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--fg);
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .plx__layer:not(.plx__text) {
+    width: 34vw !important;
+  }
+}

@@ -224,8 +224,12 @@
   position: absolute;
   z-index: 2;
   left: var(--gutter);
-  top: calc(var(--nav-h) + 24px);
-  max-width: 380px;
+  top: calc(var(--nav-h) + 16px);
+  max-width: 420px;
+  padding: 20px 22px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(12px);
   pointer-events: none;
 }
 
