@@ -408,14 +408,25 @@ export function create(container: HTMLElement): Demo {
   container.addEventListener('pointerleave', onLeave);
   container.addEventListener('pointercancel', onLeave);
 
-  initFramebuffers();
+  try {
+    initFramebuffers();
+  } catch (err) {
+    freeAll();
+    stage.dispose();
+    throw err;
+  }
   let w0 = stage.width;
   let h0 = stage.height;
   stage.onResize((w, h) => {
     if (Math.abs(w - w0) > 40 || Math.abs(h - h0) > 40) {
       w0 = w;
       h0 = h;
-      initFramebuffers();
+      try {
+        initFramebuffers();
+      } catch (err) {
+        console.error('[fluid] resize realloc failed', err);
+        loop.stop();
+      }
     }
   });
 
