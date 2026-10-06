@@ -376,3 +376,8 @@
     display: none;
   }
 }
+
+/* 풀블리드 데모의 컨트롤은 고정 내비 아래로 */
+.demo-block--full .demo-ui {
+  top: calc(var(--nav-h) + 16px);
+}
