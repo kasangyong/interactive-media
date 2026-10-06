@@ -2,14 +2,22 @@ import { expect, test } from '@playwright/test';
 
 // window.__demoHost 타입은 src/main.ts 의 전역 선언을 그대로 쓴다
 
-/** 외부 네트워크 사정으로 생길 수 있는 리소스 로드 실패는 제외 */
-const IGNORED = [/Failed to load resource/i, /net::ERR_/i];
+/** 외부(CDN) 네트워크 사정으로 생기는 로드 실패 메시지는 제외 — 같은 출처 실패는 response 로 따로 잡는다 */
+const IGNORED = [
+  /Failed to load resource/i,
+  /net::ERR_/i,
+  // 헤드리스 실행 시 호스트 오디오 장치가 점유되어 있으면 Chrome 이 내는 환경 메시지 (앱 오류 아님)
+  /AudioContext encountered an error from the audio device/i,
+];
 
 test('scroll the whole page: no errors, GL cap holds, every demo starts', async ({ page }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {
     if (m.type() === 'error' && !IGNORED.some((r) => r.test(m.text()))) errors.push(`console: ${m.text()}`);
+  });
+  page.on('response', (r) => {
+    if (r.url().startsWith('http://localhost:4173') && r.status() >= 400) errors.push(`http ${r.status()}: ${r.url()}`);
   });
 
   await page.goto('/');
@@ -30,7 +38,8 @@ test('scroll the whole page: no errors, GL cap holds, every demo starts', async 
     const gates = page.locator('.demo-gate:visible');
     for (let i = 0; i < (await gates.count()); i++) {
       const gate = gates.nth(i);
-      if (await gate.isVisible()) await gate.click({ trial: false }).catch(() => undefined);
+      // 스크롤 도중 사라질 수 있으므로 보이는 것만 누른다
+      if (await gate.isVisible()) await gate.click();
     }
     await page.waitForTimeout(400);
     const snap = await page.evaluate((list) => {
@@ -42,8 +51,26 @@ test('scroll the whole page: no errors, GL cap holds, every demo starts', async 
       return { gl: h.activeGLCount(), seen: inView.map((id) => [id, h.stateOf(id)] as const) };
     }, ids);
     maxGL = Math.max(maxGL, snap.gl);
-    for (const [id, s] of snap.seen) if (s && (states[id] === undefined || s === 'active' || s === 'failed')) states[id] = s;
+    for (const [id, s] of snap.seen) {
+      // 한 번이라도 failed 였으면 그대로 남긴다
+      if (!s || states[id] === 'failed') continue;
+      if (states[id] === undefined || s === 'active' || s === 'failed') states[id] = s;
+    }
   }
+
+  // 화면을 벗어난 데모는 멈춰 있어야 한다 (끝까지 내려온 상태에서 첫 데모 확인)
+  const firstState = await page.evaluate(() => window.__demoHost!.stateOf('cursor-trail'));
+  expect(['paused', 'idle']).toContain(firstState);
+
+  // 타임라인: 섹션 중간에서 트랙이 실제로 가로 이동했는지
+  const shift = await page.evaluate(async () => {
+    const s = document.getElementById('timeline')!;
+    const top = s.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, top + (s.offsetHeight - window.innerHeight) * 0.6);
+    await new Promise((r) => setTimeout(r, 1200));
+    return new DOMMatrix(getComputedStyle(document.querySelector('[data-timeline]')!).transform).m41;
+  });
+  expect(shift).toBeLessThan(-100);
 
   await page.screenshot({ path: info.outputPath('end.png') });
 

@@ -359,12 +359,14 @@
 
 /* ---------- 타임라인 (가로 스크롤) ---------- */
 .timeline {
-  height: 400vh;
+  /* JS 가 실제 트랙 폭으로 다시 계산하기 전의 기본값 */
+  height: 300vh;
 }
 .timeline__sticky {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100svh;
   overflow: hidden;
   display: flex;
   flex-direction: column;

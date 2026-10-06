@@ -80,9 +80,9 @@ export function initTimeline(): void {
   let p = 0;
   let maxShift = 0;
   const measure = () => {
-    maxShift = Math.max(0, track.scrollWidth - window.innerWidth);
-    // 이동 거리만큼 세로 스크롤 길이를 확보
-    section.style.height = `${window.innerHeight + maxShift}px`;
+    maxShift = Math.max(0, track.scrollWidth - document.documentElement.clientWidth);
+    // 이동 거리만큼 세로 스크롤 길이를 확보 (svh: 모바일 주소창 변화에 흔들리지 않게)
+    section.style.height = `calc(100svh + ${maxShift}px)`;
   };
   measure();
   new ResizeObserver(measure).observe(track);

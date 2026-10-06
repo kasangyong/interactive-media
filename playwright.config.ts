@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 240_000,
+  // 가짜 카메라/마이크 장치는 동시에 여러 브라우저가 열면 서로 막힌다
+  workers: 1,
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:4173',

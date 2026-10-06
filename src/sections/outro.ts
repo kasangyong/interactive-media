@@ -19,7 +19,7 @@ export function initOutro(): void {
   box.innerHTML = lines
     .map(
       (line) =>
-        `<span class="outro__line">${[...line.trim()]
+        `<span class="outro__line" aria-hidden="true">${[...line.trim()]
           .map((ch) => (ch === ' ' ? '<span class="outro__sp"> </span>' : `<span class="outro__ch">${ch}</span>`))
           .join('')}</span>`,
     )
