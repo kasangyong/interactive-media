@@ -1,6 +1,6 @@
 import { getAudio } from '../../core/audio';
 import { createLoop } from '../../core/loop';
-import { requestMicrophone, showNotice, stopStream } from '../../core/permissions';
+import { requestMicrophone, setStreamEnabled, showNotice, stopStream } from '../../core/permissions';
 import { createStage2D } from '../../core/stage';
 import type { Demo } from '../../core/types';
 
@@ -13,8 +13,17 @@ export async function create(container: HTMLElement): Promise<Demo> {
     return { pause() {}, resume() {}, unmount: () => box.remove() };
   }
   const stream = res.value;
+  try {
+    return await start(container, stream);
+  } catch (err) {
+    stopStream(stream);
+    throw err;
+  }
+}
+
+async function start(container: HTMLElement, stream: MediaStream): Promise<Demo> {
   const ctx = getAudio();
-  if (ctx.state === 'suspended') await ctx.resume().catch(() => undefined);
+  if (ctx.state !== 'running') await ctx.resume().catch(() => undefined);
   const source = ctx.createMediaStreamSource(stream);
   const analyser = ctx.createAnalyser();
   analyser.fftSize = 2048;
@@ -101,8 +110,14 @@ export async function create(container: HTMLElement): Promise<Demo> {
   loop.start();
 
   return {
-    pause: () => loop.stop(),
-    resume: () => loop.start(),
+    pause: () => {
+      loop.stop();
+      setStreamEnabled(stream, false);
+    },
+    resume: () => {
+      setStreamEnabled(stream, true);
+      loop.start();
+    },
     unmount: () => {
       loop.stop();
       source.disconnect();

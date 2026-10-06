@@ -54,8 +54,16 @@ export function primeMotion(): void {
 }
 
 /** primeMotion 이 이미 요청했으면 그 결과를, 아니면 새로 요청 */
-export function getMotionPermission(): Promise<PermissionResult<true>> {
-  return motionPromise ?? requestMotion();
+export async function getMotionPermission(): Promise<PermissionResult<true>> {
+  const res = await (motionPromise ?? requestMotion());
+  // 거부된 결과는 캐시하지 않아 재시도가 가능하게
+  if (!res.ok) motionPromise = null;
+  return res;
+}
+
+/** 일시정지 동안 카메라/마이크 표시등을 끈다 */
+export function setStreamEnabled(stream: MediaStream, enabled: boolean): void {
+  stream.getTracks().forEach((t) => (t.enabled = enabled));
 }
 
 export function stopStream(stream: MediaStream | null | undefined): void {

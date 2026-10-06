@@ -99,12 +99,13 @@ export function create(container: HTMLElement): Demo {
   };
   grid.addEventListener('pointerdown', onPad);
 
-  // 키보드: 데모가 화면 안에 있고 입력창에 포커스가 없을 때만
+  // 키보드: 커서가 데모 위에 있거나 패드에 포커스가 있을 때만, 입력 요소는 제외
   let active = true;
   const onKey = (e: KeyboardEvent) => {
-    if (!active || e.repeat || e.metaKey || e.ctrlKey) return;
-    const tag = (document.activeElement as HTMLElement | null)?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (!active || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (!pointer.inside && !root.contains(document.activeElement)) return;
+    const el = document.activeElement as HTMLElement | null;
+    if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return;
     const i = KEYS.indexOf(e.key.toLowerCase());
     if (i >= 0) play(i);
   };

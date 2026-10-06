@@ -9,7 +9,8 @@ export function getAudio(): AudioContext {
 /** 사용자 제스처 안에서 호출해야 소리가 난다 */
 export function unlockAudio(): void {
   const c = getAudio();
-  if (c.state === 'suspended') void c.resume();
+  // iOS 는 전화/잠금 후 'interrupted' 상태가 된다
+  if (c.state !== 'running') void c.resume();
 }
 
 export interface Master {
@@ -57,6 +58,8 @@ export function createScheduler(bpm: number, onStep: (step: number, time: number
   let step = 0;
   let timer = 0;
   const tick = () => {
+    // 백그라운드 탭 스로틀로 밀렸으면 지난 노트를 몰아 치지 않고 현재로 점프
+    if (next < c.currentTime) next = c.currentTime + 0.02;
     while (next < c.currentTime + 0.12) {
       onStep(step, next);
       step++;

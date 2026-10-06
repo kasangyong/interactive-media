@@ -98,9 +98,14 @@ export function create(container: HTMLElement): Demo {
       }
     }
     const t = ac.currentTime;
-    panner.positionX.setTargetAtTime(src.x * METERS, t, 0.03);
-    panner.positionY.setTargetAtTime(0, t, 0.03);
-    panner.positionZ.setTargetAtTime(src.y * METERS, t, 0.03);
+    if (panner.positionX) {
+      panner.positionX.setTargetAtTime(src.x * METERS, t, 0.03);
+      panner.positionY.setTargetAtTime(0, t, 0.03);
+      panner.positionZ.setTargetAtTime(src.y * METERS, t, 0.03);
+    } else {
+      // 구형 Safari: AudioParam 대신 setPosition
+      panner.setPosition(src.x * METERS, 0, src.y * METERS);
+    }
 
     const w = stage.width;
     const h = stage.height;
