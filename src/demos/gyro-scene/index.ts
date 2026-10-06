@@ -97,7 +97,10 @@ export function create(container: HTMLElement): Demo {
     tilt.y = Math.max(-1, Math.min(1, (e.beta - 35) / 35));
   };
   let ui: HTMLElement | null = null;
-  const enableSensor = () => window.addEventListener('deviceorientation', onOrient);
+  let disposed = false;
+  const enableSensor = () => {
+    if (!disposed) window.addEventListener('deviceorientation', onOrient);
+  };
   const touchDevice = window.matchMedia('(pointer: coarse)').matches;
   if (touchDevice && typeof DeviceOrientationEvent !== 'undefined') {
     ui = document.createElement('div');
@@ -182,6 +185,7 @@ export function create(container: HTMLElement): Demo {
     pause: () => loop.stop(),
     resume: () => loop.start(),
     unmount: () => {
+      disposed = true;
       loop.stop();
       window.removeEventListener('deviceorientation', onOrient);
       pointer.dispose();

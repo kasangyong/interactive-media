@@ -34,11 +34,14 @@ export async function create(container: HTMLElement): Promise<Demo> {
   let landmarker: HandLandmarker;
   try {
     const fileset = await FilesetResolver.forVisionTasks(WASM);
-    landmarker = await HandLandmarker.createFromOptions(fileset, {
-      baseOptions: { modelAssetPath: MODEL, delegate: 'GPU' },
-      runningMode: 'VIDEO',
-      numHands: 2,
-    });
+    const make = (delegate: 'GPU' | 'CPU') =>
+      HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: MODEL, delegate },
+        runningMode: 'VIDEO',
+        numHands: 2,
+      });
+    // GPU 델리게이트가 안 되는 환경이면 CPU 로 한 번 더
+    landmarker = await make('GPU').catch(() => make('CPU'));
   } catch (err) {
     stopStream(stream);
     status.remove();
@@ -46,6 +49,17 @@ export async function create(container: HTMLElement): Promise<Demo> {
     throw err;
   }
 
+  try {
+    return await run(container, stream, landmarker, status);
+  } catch (err) {
+    landmarker.close();
+    stopStream(stream);
+    status.remove();
+    throw err;
+  }
+}
+
+async function run(container: HTMLElement, stream: MediaStream, landmarker: HandLandmarker, status: HTMLElement): Promise<Demo> {
   const video = document.createElement('video');
   video.muted = true;
   video.playsInline = true;
@@ -59,6 +73,7 @@ export async function create(container: HTMLElement): Promise<Demo> {
   const sparks: Spark[] = [];
   const pinched = [false, false];
   let lastVideoTime = -1;
+  let lastTs = 0;
   let hands: Array<Array<{ x: number; y: number }>> = [];
 
   const loop = createLoop((dt, now) => {
@@ -74,7 +89,9 @@ export async function create(container: HTMLElement): Promise<Demo> {
 
     if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
       lastVideoTime = video.currentTime;
-      const r = landmarker.detectForVideo(video, performance.now());
+      // MediaPipe 는 타임스탬프가 단조 증가해야 한다
+      lastTs = Math.max(lastTs + 1, Math.round(performance.now()));
+      const r = landmarker.detectForVideo(video, lastTs);
       hands = r.landmarks.map((hand) => hand.map(map));
       if (hands.length) status.textContent = `${hands.length} hand${hands.length > 1 ? 's' : ''} · 21 landmarks`;
     }
