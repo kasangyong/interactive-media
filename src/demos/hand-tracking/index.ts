@@ -1,12 +1,8 @@
-import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+import { HandLandmarker, loadHandLandmarker, monotonicClock } from '../../core/hands';
 import { createLoop } from '../../core/loop';
 import { requestCamera, setStreamEnabled, showNotice, stopStream } from '../../core/permissions';
 import { createStage2D } from '../../core/stage';
 import type { Demo } from '../../core/types';
-
-// 패키지 버전과 반드시 같은 wasm 을 써야 한다
-const WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
-const MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 
 interface Spark {
   x: number;
@@ -33,15 +29,7 @@ export async function create(container: HTMLElement): Promise<Demo> {
 
   let landmarker: HandLandmarker;
   try {
-    const fileset = await FilesetResolver.forVisionTasks(WASM);
-    const make = (delegate: 'GPU' | 'CPU') =>
-      HandLandmarker.createFromOptions(fileset, {
-        baseOptions: { modelAssetPath: MODEL, delegate },
-        runningMode: 'VIDEO',
-        numHands: 2,
-      });
-    // GPU 델리게이트가 안 되는 환경이면 CPU 로 한 번 더
-    landmarker = await make('GPU').catch(() => make('CPU'));
+    landmarker = await loadHandLandmarker(2);
   } catch (err) {
     stopStream(stream);
     status.remove();
@@ -73,7 +61,7 @@ async function run(container: HTMLElement, stream: MediaStream, landmarker: Hand
   const sparks: Spark[] = [];
   const pinched = [false, false];
   let lastVideoTime = -1;
-  let lastTs = 0;
+  const clock = monotonicClock();
   let hands: Array<Array<{ x: number; y: number }>> = [];
 
   const loop = createLoop((dt, now) => {
@@ -89,9 +77,7 @@ async function run(container: HTMLElement, stream: MediaStream, landmarker: Hand
 
     if (video.readyState >= 2 && video.currentTime !== lastVideoTime) {
       lastVideoTime = video.currentTime;
-      // MediaPipe 는 타임스탬프가 단조 증가해야 한다
-      lastTs = Math.max(lastTs + 1, Math.round(performance.now()));
-      const r = landmarker.detectForVideo(video, lastTs);
+      const r = landmarker.detectForVideo(video, clock());
       hands = r.landmarks.map((hand) => hand.map(map));
       if (hands.length) status.textContent = `${hands.length} hand${hands.length > 1 ? 's' : ''} · 21 landmarks`;
     }

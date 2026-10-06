@@ -3,6 +3,7 @@ import { meta as audioSphere } from './audio-sphere/meta';
 import { meta as cursorTrail } from './cursor-trail/meta';
 import { meta as fluid } from './fluid/meta';
 import { meta as gyroScene } from './gyro-scene/meta';
+import { meta as handBrutalism } from './hand-brutalism/meta';
 import { meta as handTracking } from './hand-tracking/meta';
 import { meta as magneticDrag } from './magnetic-drag/meta';
 import { meta as micVisualizer } from './mic-visualizer/meta';
@@ -32,6 +33,7 @@ export const registry: Registry = {
   [spatialAudio.id]: { meta: spatialAudio, load: () => import('./spatial-audio') },
   [webcamShader.id]: { meta: webcamShader, load: () => import('./webcam-shader') },
   [handTracking.id]: { meta: handTracking, load: () => import('./hand-tracking') },
+  [handBrutalism.id]: { meta: handBrutalism, load: () => import('./hand-brutalism') },
   [gyroScene.id]: { meta: gyroScene, load: () => import('./gyro-scene') },
   [noiseField.id]: { meta: noiseField, load: () => import('./noise-field') },
 };

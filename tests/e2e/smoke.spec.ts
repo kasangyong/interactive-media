@@ -24,7 +24,7 @@ test('scroll the whole page: no errors, GL cap holds, every demo starts', async 
   await expect(page.locator('.loader')).toHaveCount(0, { timeout: 15_000 });
 
   const ids = await page.$$eval('[data-demo]', (els) => els.map((e) => (e as HTMLElement).dataset.demo!));
-  expect(ids).toHaveLength(16);
+  expect(ids).toHaveLength(17);
 
   const states: Record<string, string> = {};
   let maxGL = 0;
@@ -88,4 +88,18 @@ test('no horizontal overflow', async ({ page }) => {
   await expect(page.locator('.loader')).toHaveCount(0, { timeout: 15_000 });
   const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(over).toBeLessThanOrEqual(0);
+});
+
+test('hand-brutalism switches to camera control without errors', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await expect(page.locator('.loader')).toHaveCount(0, { timeout: 15_000 });
+  await page.locator('#demo-hand-brutalism').scrollIntoViewIfNeeded();
+  const btn = page.locator('#demo-hand-brutalism .demo-ui button');
+  await btn.click();
+  // 모델(CDN)을 받아 카메라 모드로 전환될 때까지
+  await expect(page.locator('#demo-hand-brutalism .hb-readout')).toContainText('INPUT CAMERA', { timeout: 60_000 });
+  await page.waitForTimeout(1500);
+  expect(errors).toEqual([]);
 });
