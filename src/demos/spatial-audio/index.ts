@@ -50,6 +50,8 @@ export function create(container: HTMLElement): Demo {
 
   const stage = createStage2D(container);
   const g = stage.ctx;
+  // 음원 드래그가 세로 방향이어도 브라우저 스크롤에 뺏기지 않도록
+  container.style.touchAction = 'none';
   // 음원 위치 (정규화: -1..1, 원점=청취자)
   const src = { x: 0.6, y: -0.3 };
   let dragging = false;

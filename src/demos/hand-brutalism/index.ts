@@ -187,6 +187,7 @@ export function create(container: HTMLElement): Demo {
   let stream: MediaStream | null = null;
   let landmarker: HandLandmarker | null = null;
   let disposed = false;
+  let paused = false;
   const clock = monotonicClock();
   let lastVideoTime = -1;
   let hands: Pt[][] = [];
@@ -240,6 +241,11 @@ export function create(container: HTMLElement): Demo {
       }
       landmarker = lm;
       mode = 'camera';
+      // 로딩 중 화면을 벗어났다면 카메라를 켜 둔 채 두지 않는다
+      if (paused) {
+        video.pause();
+        setStreamEnabled(stream, false);
+      }
       pipStatus.textContent = '두 손을 화면에 들어 보세요';
     } catch (err) {
       console.error('[hand-brutalism]', err);
@@ -359,11 +365,13 @@ export function create(container: HTMLElement): Demo {
 
   return {
     pause: () => {
+      paused = true;
       loop.stop();
       video?.pause();
       if (stream) setStreamEnabled(stream, false);
     },
     resume: () => {
+      paused = false;
       if (stream) setStreamEnabled(stream, true);
       void video?.play().catch(() => undefined);
       loop.start();

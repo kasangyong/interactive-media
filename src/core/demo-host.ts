@@ -190,10 +190,11 @@ export class DemoHost {
     const gl = this.glSlots();
     while (gl.length > this.maxActiveGL) {
       let farthest: Slot | undefined;
-      let max = -1;
+      let max = -Infinity;
       for (const s of gl) {
         if (s === keep) continue;
-        const d = distanceToViewport(s.el);
+        // 화면 근처(near) 슬롯은 최후의 수단 — 해제하면 다시 들어오기 전까지 빈 채로 보인다
+        const d = distanceToViewport(s.el) - (s.near ? 1e6 : 0);
         if (d > max) {
           max = d;
           farthest = s;

@@ -119,6 +119,29 @@ describe('DemoHost lifecycle', () => {
     expect(host.stateOf('g3')).toBe('active');
   });
 
+  test('GL eviction prefers slots that are not near the viewport', async () => {
+    const reg: Registry = {};
+    const els: HTMLElement[] = [];
+    for (let i = 0; i < 4; i++) {
+      reg[`g${i}`] = entry(`g${i}`, ['webgl']);
+      els.push(stage(`g${i}`, i * 1000));
+    }
+    const host = new DemoHost(reg, { maxActiveGL: 3 });
+    els.forEach((el) => host.observe(el));
+    fire(near(), els[0], true);
+    fire(near(), els[1], true);
+    await flush();
+    fire(near(), els[1], false); // g1: 화면 밖 → paused (로드는 유지)
+    fire(near(), els[2], true);
+    await flush();
+    fire(near(), els[3], true);
+    await flush();
+    expect(host.activeGLCount()).toBe(3);
+    // g2 가 뷰포트에서 더 멀지만 near 이므로 남고, near 가 아닌 g1 이 해제된다
+    expect(host.stateOf('g1')).toBe('idle');
+    expect(host.stateOf('g2')).toBe('active');
+  });
+
   test('create throws → fallback rendered, others unaffected', async () => {
     const bad = entry('bad', ['webgl'], () => { throw new WebGLUnavailableError(); });
     const good = entry('good');

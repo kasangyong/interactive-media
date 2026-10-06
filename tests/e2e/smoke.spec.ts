@@ -99,7 +99,11 @@ test('hand-brutalism switches to camera control without errors', async ({ page }
   const btn = page.locator('#demo-hand-brutalism .demo-ui button');
   await btn.click();
   // 모델(CDN)을 받아 카메라 모드로 전환될 때까지
-  await expect(page.locator('#demo-hand-brutalism .hb-readout')).toContainText('INPUT CAMERA', { timeout: 60_000 });
+  const status = page.locator('#demo-hand-brutalism .hb-pip__status');
+  await expect(page.locator('#demo-hand-brutalism .hb-readout'), `status: ${await status.textContent()}`).toContainText(
+    'INPUT CAMERA',
+    { timeout: 90_000 },
+  );
   await page.waitForTimeout(1500);
   expect(errors).toEqual([]);
 });
