@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Media — 몸과 화면이 대화하는 방식</title>
+    <meta name="description" content="포인터, 스크롤, 사운드, 카메라와 센서. 웹에서 직접 만져보는 인터랙티브 미디어 기법 16가지." />
+    <meta property="og:title" content="Interactive Media" />
+    <meta property="og:description" content="웹에서 직접 만져보는 인터랙티브 미디어 기법 16가지." />
+    <meta property="og:image" content="./img/og.jpg" />
+    <meta name="theme-color" content="#07070a" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  </head>
+  <body>
+    <div class="bg-layer" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="loader" aria-hidden="true">
+      <div class="loader__inner">
+        <span class="loader__label">Interactive Media</span>
+        <span class="loader__count">0</span>
+      </div>
+      <div class="loader__bar"><span></span></div>
+    </div>
+
+    <div class="cursor" aria-hidden="true">
+      <div class="cursor__dot"></div>
+      <div class="cursor__ring"><span class="cursor__label"></span></div>
+    </div>
+
+    <header class="nav">
+      <a class="nav__logo" href="#hero" data-nav>IM<sup>®</sup></a>
+      <nav class="nav__links" aria-label="섹션">
+        <a href="#pointer" data-nav><span>01</span>Pointer</a>
+        <a href="#scroll" data-nav><span>02</span>Scroll</a>
+        <a href="#audio" data-nav><span>03</span>Sound</a>
+        <a href="#sensor" data-nav><span>04</span>Sensor</a>
+        <a href="#timeline" data-nav><span>05</span>History</a>
+      </nav>
+      <div class="nav__progress" aria-hidden="true"><span></span></div>
+    </header>
+
+    <main>
+      <!-- 0. HERO -->
+      <section id="hero" class="hero" data-bg="#07070a" data-fg="#f2f2f2" data-accent="#5b7cff">
+        <div class="hero__canvas" data-hero></div>
+        <div class="hero__content">
+          <p class="hero__kicker">A field guide to</p>
+          <h1 class="hero__title">
+            <span class="line"><span>Interactive</span></span>
+            <span class="line line--indent"><span>Media</span></span>
+          </h1>
+          <div class="hero__bottom">
+            <p class="hero__sub">입력하는 몸과 반응하는 화면.<br />웹에서 직접 만져보는 인터랙티브 미디어의 모든 것.</p>
+            <ul class="hero__meta">
+              <li><strong>16</strong> demos</li>
+              <li><strong>04</strong> chapters</li>
+              <li class="hero__scroll">Scroll <span>↓</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 1. INTRO -->
+      <section id="intro" class="intro" data-bg="#07070a" data-fg="#f2f2f2" data-accent="#5b7cff">
+        <p class="intro__label">( 인터랙티브 미디어란 )</p>
+        <p class="intro__statement" data-reveal="scrub">
+          인터랙티브 미디어는 보는 사람이 결과를 바꾸는 미디어다. 마우스의 궤적, 스크롤의 속도, 목소리의 크기, 손의 위치가
+          입력이 되고, 화면은 그 입력에 실시간으로 응답한다. 관객은 더 이상 관객이 아니라 공동 작가가 된다.
+        </p>
+        <div class="intro__grid">
+          <div class="intro__item">
+            <span class="intro__num">01</span>
+            <h3>입력 Input</h3>
+            <p>포인터, 터치, 스크롤, 소리, 카메라, 기울기. 몸의 움직임을 데이터로 바꾸는 단계.</p>
+          </div>
+          <div class="intro__item">
+            <span class="intro__num">02</span>
+            <h3>처리 Process</h3>
+            <p>물리 시뮬레이션, 셰이더, 신호 분석, 머신러닝. 입력을 의미 있는 변화로 해석하는 단계.</p>
+          </div>
+          <div class="intro__item">
+            <span class="intro__num">03</span>
+            <h3>출력 Feedback</h3>
+            <p>빛, 형태, 소리, 움직임. 60분의 1초 안에 돌아오는 반응이 '살아있다'는 감각을 만든다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. POINTER -->
+      <section id="pointer" class="chapter" data-bg="#0d1240" data-fg="#eef0ff" data-accent="#7d95ff">
+        <header class="chapter__head">
+          <span class="chapter__num">01</span>
+          <h2 class="chapter__title" data-reveal="lines">Pointer<br />&amp; Gesture</h2>
+          <p class="chapter__lead">
+            가장 오래되고 가장 친숙한 입력. 커서의 위치와 속도, 누르고 끄는 동작, 손가락 여러 개의 거리와 각도까지.
+            포인터는 화면 속 세계를 직접 만지는 손이다.
+          </p>
+        </header>
+        <div class="chapter__demos" data-demo-list="pointer"></div>
+      </section>
+
+      <!-- 3. SCROLL -->
+      <section id="scroll" class="chapter" data-bg="#f0f1f3" data-fg="#0b0b0b" data-accent="#1a3cff">
+        <header class="chapter__head">
+          <span class="chapter__num">02</span>
+          <h2 class="chapter__title" data-reveal="lines">Scroll<br />&amp; Motion</h2>
+          <p class="chapter__lead">
+            스크롤은 시간 축이다. 사용자가 손가락으로 재생 헤드를 움직이고, 페이지는 그 진행도에 맞춰 장면을 연출한다.
+            이 챕터는 읽는 동안 이미 데모 안에 있다.
+          </p>
+        </header>
+        <div class="chapter__demos" data-demo-list="scroll"></div>
+      </section>
+
+      <!-- 4. AUDIO -->
+      <section id="audio" class="chapter" data-bg="#ff5a1f" data-fg="#0b0b0b" data-accent="#0b0b0b">
+        <header class="chapter__head">
+          <span class="chapter__num">03</span>
+          <h2 class="chapter__title" data-reveal="lines">Sound<br />&amp; Audio</h2>
+          <p class="chapter__lead">
+            Web Audio API는 브라우저 안의 모듈러 신시사이저다. 소리를 만들고, 분석하고, 공간에 배치한다.
+            헤드폰을 쓰면 더 좋다.
+          </p>
+        </header>
+        <div class="chapter__demos" data-demo-list="audio"></div>
+      </section>
+
+      <!-- 5. SENSOR -->
+      <section id="sensor" class="chapter" data-bg="#07070a" data-fg="#f2f2f2" data-accent="#c6ff3d">
+        <header class="chapter__head">
+          <span class="chapter__num">04</span>
+          <h2 class="chapter__title" data-reveal="lines">Camera, Sensor<br />&amp; Generative</h2>
+          <p class="chapter__lead">
+            카메라는 몸 전체를 입력으로 만들고, 기울기 센서는 기기를 컨트롤러로 바꾼다. 그리고 규칙만 주면 스스로 자라는
+            생성 예술까지. 영상은 기기 밖으로 전송되지 않는다.
+          </p>
+        </header>
+        <div class="chapter__demos" data-demo-list="sensor"></div>
+      </section>
+
+      <!-- 6. TIMELINE -->
+      <section id="timeline" class="timeline" data-bg="#07070a" data-fg="#f2f2f2" data-accent="#c6ff3d">
+        <div class="timeline__sticky">
+          <header class="timeline__head">
+            <span class="chapter__num">05</span>
+            <h2 class="chapter__title">A Short History</h2>
+          </header>
+          <div class="timeline__track" data-timeline></div>
+          <div class="timeline__progress"><span></span></div>
+        </div>
+      </section>
+
+      <!-- 7. OUTRO -->
+      <section id="outro" class="outro" data-bg="#07070a" data-fg="#f2f2f2" data-accent="#5b7cff">
+        <div class="outro__type" data-outro aria-label="Now it's your turn">Now it's<br />your turn</div>
+        <footer class="footer">
+          <p>Interactive Media — 학습용 인터랙티브 아카이브</p>
+          <p>Built with Three.js · GSAP · Lenis · Web Audio · MediaPipe</p>
+          <a href="#hero" data-nav class="footer__top">맨 위로 ↑</a>
+        </footer>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

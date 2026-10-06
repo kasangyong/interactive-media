@@ -1,0 +1,26 @@
+:root {
+  /* 섹션 전환으로 background.ts 가 덮어쓴다 */
+  --bg: #07070a;
+  --fg: #f2f2f2;
+  --accent: #5b7cff;
+
+  --font-display: 'Archivo', 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+  --font-body: 'Pretendard Variable', Pretendard, 'Archivo', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --fs-display: clamp(64px, 13.5vw, 260px);
+  --fs-h2: clamp(52px, 9vw, 168px);
+  --fs-h3: clamp(26px, 2.6vw, 40px);
+  --fs-lead: clamp(17px, 1.35vw, 21px);
+  --fs-body: 16px;
+  --fs-small: 12px;
+
+  --gutter: clamp(16px, 3.2vw, 48px);
+  --radius: 18px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --nav-h: 64px;
+
+  --line: color-mix(in srgb, var(--fg) 16%, transparent);
+  --muted: color-mix(in srgb, var(--fg) 62%, transparent);
+  --panel: color-mix(in srgb, var(--fg) 6%, transparent);
+}
