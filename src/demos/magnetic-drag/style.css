@@ -1,0 +1,49 @@
+.mag {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  user-select: none;
+}
+.mag__row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22%;
+  display: flex;
+  justify-content: center;
+  gap: clamp(24px, 6vw, 96px);
+}
+.mag__btn {
+  width: clamp(88px, 10vw, 132px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--fg);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  will-change: transform;
+  transition: background 0.35s, color 0.35s;
+}
+.mag__btn span {
+  display: inline-block;
+  will-change: transform;
+}
+.mag__btn.is-pulled {
+  background: var(--fg);
+  color: var(--bg);
+}
+.mag__ball {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  will-change: transform;
+  touch-action: none;
+  box-shadow: inset -10px -14px 30px rgba(0, 0, 30, 0.35), inset 8px 10px 20px rgba(255, 255, 255, 0.35);
+}
+.mag__ball.is-held {
+  z-index: 2;
+  filter: brightness(1.1);
+}
