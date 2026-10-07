@@ -40,7 +40,11 @@ function boot() {
   initTimeline();
   initOutro();
   const heroReady = initHero(scroll);
-  void runLoader(scroll, Promise.all([document.fonts.ready, heroReady]));
+  void runLoader(scroll, Promise.all([document.fonts.ready, heroReady])).then(() => {
+    // README 등에서 #demo-fluid 같은 링크로 들어오면 로더가 끝난 뒤 그 데모로 이동
+    const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    if (target) scroll.scrollTo(target);
+  });
 
   const host = new DemoHost(registry, {
     // 게이트 클릭(사용자 제스처) 안에서 바로 호출해야 브라우저가 허용한다

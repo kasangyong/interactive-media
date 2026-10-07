@@ -4,3 +4,4 @@ test-results
 playwright-report
 .superpowers
 .playwright-mcp
+.readme-capture
