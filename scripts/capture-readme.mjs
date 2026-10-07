@@ -14,6 +14,9 @@ const VIEW = { width: 1280, height: 720 };
 mkdirSync(resolve(OUT, 'demos'), { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// 일부만 다시 찍기: node scripts/capture-readme.mjs [main|person|hands ...]
+const only = new Set(process.argv.slice(2));
+const want = (name) => only.size === 0 || only.has(name);
 
 async function open(fakeVideo) {
   const args = ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--autoplay-policy=no-user-gesture-required'];
@@ -87,7 +90,7 @@ const circle = (box, i, n, r = 0.28) => {
 };
 
 // ---------------- 1) 메인 브라우저: 카메라가 필요 없는 데모 ----------------
-{
+if (want('main')) {
   const { browser, page } = await open(null);
 
   await gif(page, 'hero', 36, async (i) => {
@@ -199,7 +202,7 @@ const circle = (box, i, n, r = 0.28) => {
 }
 
 // ---------------- 2) 가짜 카메라: 인물 영상 ----------------
-{
+if (want('person')) {
   const { browser, page } = await open('person.y4m');
   await visit(page, 'webcam-shader', { gate: true, wait: 3000 });
   await still(page, 'webcam-shader');
@@ -209,8 +212,8 @@ const circle = (box, i, n, r = 0.28) => {
   await browser.close();
 }
 
-// ---------------- 3) 가짜 카메라: 두 손 영상 ----------------
-{
+// ---------------- 3) 가짜 카메라: 두 손 영상 (손가락 5개 확인한 한 손을 좌우 반전해 합성) ----------------
+if (want('hands')) {
   const { browser, page } = await open('hands.y4m');
   await visit(page, 'hand-tracking', { center: false, gate: true, wait: 15000 });
   await still(page, 'hand-tracking');

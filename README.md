@@ -225,5 +225,5 @@ scripts/                   이미지 생성(sd-turbo), README 캡처
 - 아스키 셰이더의 5×5 비트맵 글리프 기법: movAX13h
 - 손 인식: [MediaPipe Hand Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker) (Apache 2.0)
 - 라이브러리: [Three.js](https://threejs.org), [GSAP](https://gsap.com), [Lenis](https://lenis.darkroom.engineering), [simplex-noise](https://github.com/jwagner/simplex-noise.js)
-- 타임라인·패럴랙스 이미지와 README 캡처용 카메라 입력은 로컬에서 **Stable Diffusion Turbo**로 생성했습니다 (실제 인물 아님, [`scripts/gen_images.py`](scripts/gen_images.py)). sd-turbo 모델 라이선스 조건을 따릅니다.
+- 타임라인·패럴랙스 이미지와 README 캡처용 카메라 입력은 로컬에서 **Stable Diffusion Turbo**와 **SDXL-Lightning**으로 생성했습니다 (실제 인물 아님, [`scripts/gen_images.py`](scripts/gen_images.py)). 손 영상은 손가락 수가 정확한 한 손을 골라 좌우 반전해 합성했습니다. 각 모델의 라이선스 조건을 따릅니다.
 - 영감: [Lusion](https://lusion.co), 브루탈리즘 데모는 Genuary Day 23 "Inspired by brutalism" TouchDesigner 작업에서 아이디어를 얻었습니다.
