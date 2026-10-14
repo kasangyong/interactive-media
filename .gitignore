@@ -11,3 +11,4 @@ media-art/shots/**/*.png
 media-art/_*.html
 media-art/renders/**/*.mp4
 media-art/renders/**/frames/
+media-art/renders.log
