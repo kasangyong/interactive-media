@@ -26,7 +26,10 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.once('listening', r));
 const url = `http://127.0.0.1:${server.address().port}/${encodeURIComponent(file)}`;
 
-const browser = await chromium.launch();
+// 브리프의 성능 목표(노트북 내장 그래픽 60fps)에 맞춰 실제 GPU(이 PC는 Intel Iris Xe)로 렌더링한다.
+// 기본 헤드리스는 GPU 없는 SwiftShader 라 CSS filter·합성이 CPU 로 돌아 실제보다 훨씬 느리게 잰다. CHECK_SOFTWARE=1 이면 그 조건으로.
+const GPU_ARGS = ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--enable-gpu-rasterization'];
+const browser = await chromium.launch({ args: process.env.CHECK_SOFTWARE ? [] : GPU_ARGS });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push('pageerror ' + e.message));
@@ -66,10 +69,25 @@ const imgs = [];
 for (let w = 0; w < 4; w++) for (let k = 1; k <= 3; k++) imgs.push((await readFile(join(out, `w${w}a${k}.png`))).toString('base64'));
 await sheet.setContent(`<body style="margin:0;background:#000;display:grid;grid-template-columns:repeat(3,480px)">${imgs.map((b) => `<img src="data:image/png;base64,${b}" style="width:480px;height:270px;display:block">`).join('')}</body>`);
 await sheet.screenshot({ path: join(out, 'sheet.jpg'), quality: 88, type: 'jpeg' });
+// 블랙 레벨: 각 장면 위쪽 두 모서리(32×32) 평균 밝기(0~255) 중 최댓값. 검은 바탕 위의 빛이어야 한다
+const blackLevel = await sheet.evaluate(async (list) => {
+  let worst = 0;
+  for (const b64 of list) {
+    const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode();
+    const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    for (const x of [0, c.width - 32]) {
+      const d = g.getImageData(x, 0, 32, 32).data; let sum = 0;
+      for (let i = 0; i < d.length; i += 4) sum += (d[i] + d[i + 1] + d[i + 2]) / 3;
+      worst = Math.max(worst, sum / (d.length / 4));
+    }
+  }
+  return Math.round(worst * 10) / 10;
+}, imgs);
 
-const report = { errors, fps, minFps: Math.min(...Object.values(fps)), seekErr, pace, afterEnd, overflow };
+const report = { errors, fps, minFps: Math.min(...Object.values(fps)), seekErr, pace, afterEnd, overflow, blackLevel };
 console.log(JSON.stringify(report));
 await browser.close();
 server.close();
-const pass = errors.length === 0 && report.minFps >= 55 && Object.values(seekErr).every((e) => Math.abs(e) < 0.05) && Math.abs(pace - 2) < 0.1 && afterEnd === 'forest' && overflow <= 0;
+const pass = errors.length === 0 && report.minFps >= 55 && Object.values(seekErr).every((e) => Math.abs(e) < 0.05) && Math.abs(pace - 2) < 0.1 && afterEnd === 'forest' && overflow <= 0 && blackLevel <= 14;
 process.exitCode = pass ? 0 : 1;

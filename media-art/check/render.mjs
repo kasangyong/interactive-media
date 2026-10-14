@@ -27,7 +27,8 @@ const server = createServer(async (req, res) => {
 }).listen(0, '127.0.0.1');
 await new Promise((r) => server.once('listening', r));
 
-const browser = await chromium.launch();
+// 실제 GPU 로 렌더링(기본 헤드리스는 GPU 없는 SwiftShader 라 느리다)
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--enable-gpu-rasterization'] });
 for (const w of works) {
   const key = KEYS[w];
   const out = join(ROOT, 'renders', key), frames = join(out, 'frames');

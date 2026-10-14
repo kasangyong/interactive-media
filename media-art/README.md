@@ -2,7 +2,7 @@
 
 전시장 벽면 LED·프로젝션에 상영될 **실시간 인터랙티브 미디어아트**의 방향을 정하는 웹 시제품입니다. 숲 / 바다 / 우주 / 꽃밭 네 작품이 각각 48초, 3막으로 하나의 생각을 이야기하고, 관람객의 손(마우스·터치)에 반응합니다. 최종 구현은 Unreal Engine 5이며, 이 시제품은 UE 8개 표현 계열 안에서만 연출합니다([BRIEF.md](BRIEF.md)).
 
-<p align="center"><img src="shots/r4/sheet.jpg" alt="네 작품의 1·2·3막 접촉 시트" width="100%"/></p>
+<p align="center"><img src="shots/r9/sheet.jpg" alt="네 작품의 1·2·3막 접촉 시트" width="100%"/></p>
 <p align="center"><sub>행: 숲 · 바다 · 우주 · 꽃밭 / 열: 1막(9초) · 2막(25초) · 3막(41.5초)</sub></p>
 
 ## 보는 법
@@ -50,7 +50,7 @@ npm run media:render -- index.html 1 # 바다만
 
 | 파일 | 내용 |
 |---|---|
-| [index.html](index.html) | **현재 작품** (Codex 제작, 4라운드) |
+| [index.html](index.html) | **현재 작품** (Codex 제작, 9라운드) |
 | [NOTES.md](NOTES.md) | 작품별 요약 표: 컨셉 · 손의 의미 · 3막 · 시각 언어 · UE 계열 · 손 반응 수치, 라운드별 변경 이력 |
 | [claude-v2.html](claude-v2.html) | Claude 시안 (비교용) |
 | [BRIEF.md](BRIEF.md) | 브리프 (공개용으로 회사·인명 정보를 뺀 요약) |
@@ -71,6 +71,8 @@ Claude(디렉터) ─ 연출 프롬프트 ─▶ Codex(제작) ─ index.html �
 3. **자동 검증** — `node media-art/check/shoot.mjs`가 아래를 재고 합격·불합격으로 끝난다(종료 코드 0/1).
 4. 통과한 결과만 커밋한다(autocommit).
 
+측정은 브리프의 성능 목표(노트북 내장 그래픽 60fps)에 맞춰 **실제 GPU**로 합니다. 이 PC에서는 Intel Iris Xe(D3D11)입니다. 기본 헤드리스 Chromium은 GPU 없는 SwiftShader라 CSS 합성이 CPU로 돌아 실제보다 훨씬 느리게 잽니다(`CHECK_SOFTWARE=1`로 그 조건 재현).
+
 | 검증 항목 | 합격선 |
 |---|---|
 | 콘솔 오류 | 0 |
@@ -79,6 +81,7 @@ Claude(디렉터) ─ 연출 프롬프트 ─▶ Codex(제작) ─ index.html �
 | 실제 2초 동안 작품 시계 | 2.0 ± 0.1초 |
 | 48초 뒤 다음 작품 전환 | 꽃밭 → 숲 순환 |
 | 폭 400px 가로 넘침 | 없음 |
+| 블랙 레벨(장면 위쪽 모서리 평균 밝기, 0~255) | 14 이하 |
 
 ```bash
 node media-art/check/shoot.mjs                      # index.html → shots/latest/
@@ -92,8 +95,13 @@ node media-art/check/shoot.mjs claude-v2.html shots/v2
 | [1](prompts/01_create.md) | 기술 만점(60fps, 오류 0)이지만 화면이 어둡고 성김, 꽃이 클립아트, 막 변화가 안 읽힘 | 밀도·광량, 막별 구도 차이, 꽃 아이콘 금지, 컨셉 문장 복원 |
 | [2](prompts/02_direct.md) | 바다·우주가 작품 수준으로 올라옴. 숲은 청록 벽, 꽃은 각진 곡선. **숲 7fps** | 성능 최우선, 시간 오차(2.22초) 수정, 숲 재연출 |
 | [3](prompts/03_direct.md) | 11장면 60fps, 시간 정확. 네 작품 모두 막 변화가 읽힘 | 바다 2막 49fps, 숲 호흡 띠, 꽃 색 관계 |
-| [4](prompts/04_direct.md) | **모든 검증 통과(최저 59fps)**. 꽃이 장미 곡선 위주로 정돈됨 | 남은 과제: 숲의 숨 띠가 아직 약함 |
+| [4](prompts/04_direct.md) | 모든 검증 통과(최저 59fps). 꽃이 장미 곡선 위주로 정돈됨 | 이미지 퀄리티 |
+| [5](prompts/05_image_quality.md) | 블룸·필름 그레인·별 스프라이트·수묵 얼룩으로 이미지가 풍부해짐. 대신 배경이 회색으로 뜨고(블랙 레벨 21.5) 바다 2막 29fps | 검정 복원, 블룸 비용, 꽃 얼룩 모양 |
+| [6](prompts/06_fix.md) | 블랙 레벨 9.4로 복원, 얼룩이 물감 번짐으로. 성능은 더 나빠짐 | 화면 전체 합성을 CSS 레이어로 |
+| [7](prompts/07_perf.md) | 소프트웨어 렌더링 측정에서는 더 느려 보였으나, **실제 GPU(Iris Xe)로 재니 가장 빠름**. 측정 환경을 GPU로 바로잡음 | 바다 2막 29fps |
+| [8](prompts/08_sea.md) | 속도장 격자를 넣었지만 바다 2막 그대로 | 프로파일링 |
+| [9](prompts/09_readback.md) | 프로파일 결과 프레임의 77%가 블룸의 `getImageData`(GPU→CPU 동기 복사). 픽셀 읽기를 없애고 임계값을 CSS 필터로 → 프레임당 JS 17.9ms → 1.0ms. **모든 검증 통과(최저 56fps, 블랙 레벨 5.8)** | — |
 
 ## 남은 과제
-- 숲 2막의 "숨이 건너가는 밝은 띠"를 더 분명하게.
+- 숲은 네 작품 중 가장 단순하다. 2막의 "숨이 건너가는 밝은 띠"를 더 분명하게.
 - 실제 손(카메라 추적)이 아닌 마우스로만 검증했다. UE 이식 전 손 반응 수치는 전시장 거리·해상도 기준으로 다시 잡아야 한다.
