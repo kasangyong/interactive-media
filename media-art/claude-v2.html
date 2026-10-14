@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>추상의 네 장면 v2</title>
+<style>
+/* 위: 어두운 16:9 상영 화면 / 아래: 전시장 캡션처럼 읽는 작품 설명. 외부 폰트·이미지 없음 */
+:root{
+  --void:#07080b; --ink:#e9e6df; --mute:#9a968e; --line:#26272d; --panel:#0e0f13; --glow:#d8c08a;
+  --serif:"Nanum Myeongjo","NanumMyeongjo","Batang","AppleMyungjo","Noto Serif KR",serif;
+  --sans:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"SFMono-Regular",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--void);color:var(--ink)}
+body{font-family:var(--sans);font-size:15px;line-height:1.7;padding:24px 16px 56px;overflow-x:hidden}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mute)}
+h1{font-family:var(--serif);font-weight:700;font-size:clamp(26px,4vw,40px);line-height:1.25;margin:4px 0 6px}
+header p{color:var(--mute);margin:0;max-width:66ch}
+.stage{position:relative;width:100%;aspect-ratio:16/9;max-height:76vh;margin:0 auto;background:#000;border:1px solid var(--line);overflow:hidden;touch-action:none;cursor:none;user-select:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ring{position:absolute;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;border:1px solid rgba(255,255,255,.42);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .35s}
+.ring.on{opacity:1}
+.ring span{position:absolute;left:54px;top:14px;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.6);white-space:nowrap}
+.cap{position:absolute;left:14px;right:14px;bottom:10px;pointer-events:none;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.42);text-shadow:0 0 8px #000}
+.cap b{font-family:var(--serif);font-weight:400;font-size:13px;color:rgba(255,255,255,.62)}
+.controls{display:flex;flex-direction:column;gap:10px}
+.bar{display:flex;gap:4px}
+.bar button{all:unset;cursor:pointer;position:relative;height:34px;border-top:2px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--mute);padding-top:6px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.bar button i{position:absolute;left:0;top:-2px;height:2px;background:var(--glow);width:0}
+.bar button.on{color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button,.ctl{all:unset;cursor:pointer;padding:7px 13px;border:1px solid var(--line);font-size:14px;color:var(--mute)}
+.tabs button[aria-selected="true"]{color:var(--void);background:var(--ink);border-color:var(--ink)}
+.ctls{display:flex;gap:6px}
+.ctl{font-family:var(--mono);font-size:12px}
+button:focus-visible{outline:1px solid var(--glow);outline-offset:3px}
+.keys{font-family:var(--mono);font-size:11px;color:var(--mute)}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;border-top:1px solid var(--line);padding-top:20px}
+.grid>*{min-width:0}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mute);margin:0 0 6px}
+.concept{font-family:var(--serif);font-size:clamp(20px,2.5vw,26px);line-height:1.55;margin:2px 0 18px}
+.handm{border-left:1px solid var(--glow);padding-left:14px;margin:0 0 18px}
+.lang{color:var(--mute);margin:0}
+ol.acts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+ol.acts li{display:grid;grid-template-columns:78px 1fr;gap:12px;opacity:.45;transition:opacity .5s}
+ol.acts li.on{opacity:1}
+ol.acts .tc{font-family:var(--mono);font-size:12px;color:var(--mute);padding-top:3px;font-variant-numeric:tabular-nums}
+ol.acts b{font-family:var(--serif);font-size:17px;display:block}
+.ue{background:var(--panel);border:1px solid var(--line);padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px 28px}
+.ue>*{min-width:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.chip{font-size:13px;border:1px solid var(--line);padding:2px 10px}
+.chip em{font-style:normal;font-family:var(--mono);color:var(--glow);margin-right:6px}
+.ue p{margin:0;color:var(--mute)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td{padding:5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--mute);padding-right:12px;width:46%}
+td:last-child{font-family:var(--mono);font-size:12px}
+@media (max-width:760px){
+  .grid,.ue{grid-template-columns:1fr}
+  .cap .act{display:none}
+  .keys{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">연출 시안 v2 · 실시간 인터랙티브 미디어아트</div>
+    <h1>추상의 네 장면</h1>
+    <p>숲, 바다, 우주, 꽃밭. 작품마다 하나의 생각을 48초, 3막으로 이야기합니다. 상영 화면 위의 마우스나 손가락이 관람객의 손이고, 손이 2초 넘게 없으면 2막 동안 가상 손이 대신 반응을 보여 줍니다.</p>
+  </header>
+
+  <div class="stage" id="stage" aria-label="작품 상영 화면">
+    <canvas id="cv"></canvas>
+    <div id="rings"></div>
+    <div class="cap"><span><b id="capTitle"></b></span><span class="act" id="capAct"></span></div>
+  </div>
+
+  <div class="controls">
+    <div class="bar" id="bar" aria-label="막 선택"></div>
+    <div class="row">
+      <div class="tabs" id="tabs" role="tablist" aria-label="작품 선택"></div>
+      <div class="ctls">
+        <button class="ctl" id="prev" type="button" aria-label="이전 작품">◀</button>
+        <button class="ctl" id="play" type="button">일시정지</button>
+        <button class="ctl" id="next" type="button" aria-label="다음 작품">▶</button>
+      </div>
+    </div>
+    <div class="keys">키보드: 스페이스 재생·정지 · ←/→ 작품 이동 · 1/2/3 막 이동</div>
+  </div>
+
+  <section class="grid">
+    <div>
+      <p class="label">컨셉</p>
+      <p class="concept" id="concept"></p>
+      <p class="label">손의 의미</p>
+      <p class="handm" id="handMeaning"></p>
+      <p class="label">시각 언어</p>
+      <p class="lang" id="lang"></p>
+    </div>
+    <div>
+      <p class="label">이야기 3막 · 48초</p>
+      <ol class="acts" id="acts"></ol>
+    </div>
+  </section>
+
+  <section class="ue">
+    <div>
+      <p class="label">UE로 옮기는 방법</p>
+      <div class="chips" id="ueFam"></div>
+      <p id="ueHow"></p>
+      <p class="label" style="margin-top:14px">필요한 외부 파일</p>
+      <p id="ueFiles"></p>
+    </div>
+    <div>
+      <p class="label">손 반응 값</p>
+      <table><tbody id="params"></tbody></table>
+    </div>
+  </section>
+</div>
+
+<script>
+'use strict';
+/* =========================================================================
+   공통
+   ========================================================================= */
+const DUR = 48;
+const ACTS = [[0, 14], [14, 36], [36, 48]];
+const TAU = Math.PI * 2;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const smooth = (e0, e1, x) => { x = clamp((x - e0) / (e1 - e0), 0, 1); return x * x * (3 - 2 * x); };
+const easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${clamp(a, 0, 1).toFixed(3)})`;
+/** 시드 고정 난수 — 같은 화면 크기면 같은 배치 */
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+/** 2D 값 노이즈 (0..1) */
+const PERM = new Uint8Array(512);
+{ const r = rng(7), p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) PERM[i] = p[i & 255]; }
+const hsh = (x, y) => PERM[(PERM[x & 255] + y) & 511] / 255;
+function noise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hsh(xi, yi), b = hsh(xi + 1, yi), c = hsh(xi, yi + 1), d = hsh(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+/** 화면 면적 비례 개수, 상·하한 */
+const count = (S, per, lo, hi) => Math.round(clamp(S.W * S.H / per, lo, hi));
+/** 손 하나가 점(x,y)에 주는 영향 0..1 (가우시안) */
+const fall = (h, x, y, R) => { const dx = x - h.x, dy = y - h.y; return Math.exp(-(dx * dx + dy * dy) / (R * R)); };
+
+const S = { ctx: null, W: 0, H: 0, dpr: 1, min: 1 };
+
+/* =========================================================================
+   작품 1 · 숲 — 세로 선의 리듬
+   ========================================================================= */
+const forest = {
+  key: 'forest', theme: '숲', title: '숨을 쉬는 숲',
+  concept: '숲은 나무의 모임이 아니라, 아주 느린 하나의 호흡이다.',
+  hand: '손은 바람이에요. 손을 대고 있으면 선들이 비켜서 빈터가 열리고, 손을 휘두르면 돌풍이 지나가며 선 끝에서 포자가 깨어납니다.',
+  lang: '바닥에 뿌리를 둔 수백 개의 세로 선. 선의 길이·밝기·흔들림의 리듬만으로 숲을 암시합니다. 안개는 낮게 깔린 빛의 띠입니다.',
+  acts: [
+    ['안개', '어둠 아래 깔린 안개 속에서 가는 선들이 하나씩 땅을 뚫고 올라옵니다. 아직 무엇인지 알 수 없어요.'],
+    ['호흡', '선들이 한꺼번에 부풀었다 가라앉습니다. 6.5초에 한 번, 깊은 숨이 왼쪽에서 오른쪽으로 숲을 건너갑니다.'],
+    ['흩어짐', '숲이 뿌리부터 풀려 포자가 되어 떠오르고, 화면 위로 빠져나가 빈 어둠만 남습니다.'],
+  ],
+  ue: {
+    fam: [['3', '입자·흐름'], ['8', '시청각']],
+    how: '선은 바닥에 고정된 세로 리본 입자, 포자는 수명이 있는 입자예요. 손 반응은 리본을 밀어내는 힘과 스프링 복원 값으로 옮깁니다. 호흡 주기에 맞춰 빛 세기와 낮은 바람 소리 음량이 함께 오르내리고, 손 속도가 바람 소리를 키웁니다.',
+    files: '없음. 색·선 수·호흡 주기·포자 수명이 모두 숫자 값입니다.',
+  },
+  params: [['비킴 반경', '짧은 변 × 0.22'], ['비킴 세기', '반경 × 0.5 (위로 갈수록 크게)'], ['복원', '스프링 1.6초'], ['돌풍 임계 속도', '250 px/s'], ['돌풍 포자', '속도 100px/s당 1개, 수명 3~7초'], ['호흡 주기', '6.5초, 화면 폭에 걸쳐 1.2rad 위상차']],
+  C: { moss: [63, 150, 108], mist: [196, 226, 206], spore: [226, 236, 150] },
+  init() {
+    const r = rng(11), n = count(S, 5200, 70, 300);
+    this.lines = [];
+    for (let i = 0; i < n; i++) {
+      const x = (i + 0.2 + r() * 0.6) / n * S.W;
+      // 깊이: 0 = 멀고 흐린 선(다수), 1 = 중간, 2 = 가깝고 밝은 선(소수, 키가 큼)
+      const z = r(), tier = z < 0.55 ? 0 : z < 0.88 ? 1 : 2;
+      this.lines.push({ x, tier, h: S.H * (0.24 + 0.28 * tier + 0.3 * Math.pow(r(), 1.4)), ph: r() * TAU, grow: r() * 9 + (2 - tier) * 0.8, cut: r() * 3.5, b: 0, bv: 0 });
+    }
+    this.sp = { x: new Float32Array(1600), y: new Float32Array(1600), vx: new Float32Array(1600), vy: new Float32Array(1600), life: new Float32Array(1600), dec: new Float32Array(1600), i: 0 };
+    this.cutDone = new Uint8Array(n);
+  },
+  seek(t) {
+    for (const L of this.lines) { L.b = 0; L.bv = 0; }
+    this.sp.life.fill(0);
+    this.cutDone.fill(0);
+    // 3막 한가운데로 들어오면 이미 떠오른 포자를 깔아 둔다
+    if (t > 37) for (let k = 0; k < 500; k++) this.spawn(Math.random() * S.W, S.H * (0.2 + Math.random() * 0.8), (Math.random() - 0.5) * 20, -30 - Math.random() * 50, 0.6);
+  },
+  spawn(x, y, vx, vy, life) {
+    const s = this.sp, i = s.i; s.i = (s.i + 1) % s.x.length;
+    s.x[i] = x; s.y[i] = y; s.vx[i] = vx; s.vy[i] = vy; s.life[i] = life; s.dec[i] = 1 / (3 + Math.random() * 4);
+  },
+  step(dt, t, hands) {
+    const { ctx, W, H } = S, C = this.C;
+    const fog = 1 - smooth(14, 20, t);                    // 1막 안개
+    const breathAmp = smooth(12, 17, t) * (1 - smooth(35, 39, t));
+    const dissolve = smooth(36, 45, t);
+    const end = 1 - smooth(46, 48, t);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(3,7,6,0.42)'; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+    // 낮게 깔린 안개 띠
+    if (fog > 0.01) {
+      const g = ctx.createLinearGradient(0, H, 0, H * 0.45);
+      g.addColorStop(0, rgba(C.mist, 0.16 * fog)); g.addColorStop(1, rgba(C.mist, 0));
+      ctx.fillStyle = g; ctx.fillRect(0, H * 0.45, W, H * 0.55);
+    }
+    const R = S.min * 0.22;
+    const paths = [new Path2D(), new Path2D(), new Path2D(), new Path2D()];   // 깊이 3단계 + 숨이 차오른 선
+    for (let li = 0; li < this.lines.length; li++) {
+      const L = this.lines[li];
+      const grow = easeOut((t - L.grow) / 4.5);
+      if (grow <= 0) continue;
+      const breath = 0.5 + 0.5 * Math.sin(TAU * (t - 14) / 6.5 - (L.x / W) * 1.2);
+      const len = L.h * grow * (1 + 0.14 * breath * breathAmp);
+      // 바람 = 손: 목표 휨(위치 반응) + 돌풍 충격(속도 반응) → 스프링
+      let target = 0;
+      for (const h of hands) {
+        const top = H - len, hy = clamp(h.y, top, H);
+        const k = fall(h, L.x, hy, R) * smooth(top - R, top + R * 0.3, h.y);
+        const side = Math.sign(L.x - h.x) || 1;
+        target += side * k * R * 0.5;
+        if (h.speed > 250) {
+          L.bv += h.vx * k * 0.9 * dt;
+          if (Math.random() < k * h.speed / 100 * dt * 6) this.spawn(L.x + L.b, top, h.vx * 0.15, -40 - Math.random() * 40, 1);
+        }
+      }
+      L.bv += (target - L.b) * 22 * dt;                   // 강성
+      L.bv *= Math.exp(-5.2 * dt);                        // 감쇠 (≈1.6초 안에 복원)
+      L.b += L.bv * dt;
+      const cut = len * clamp((dissolve * 1.25 - L.cut / 3.5 * 0.25), 0, 1);
+      if (dissolve > 0 && cut > 0 && Math.random() < dissolve * 1.6 * dt * 4) this.spawn(L.x + L.b * 0.3, H - cut, (Math.random() - 0.5) * 16, -50 - Math.random() * 60, 1);
+      if (cut >= len) continue;
+      const p = breath * breathAmp > 0.6 && L.tier > 0 ? paths[3] : paths[L.tier];
+      for (let s = 0; s <= 10; s++) {
+        const f = s / 10, hy = f * len;
+        if (hy < cut) continue;
+        const sway = Math.sin(L.ph + t * 0.6 + f * 2.4) * (2 + 9 * f) * (1 + 0.6 * breath * breathAmp) * (0.6 + 0.2 * L.tier);
+        const x = L.x + sway + L.b * Math.pow(f, 1.4) * (0.5 + 0.25 * L.tier), y = H - hy;
+        if (s === 0 || hy - cut < len / 10) p.moveTo(x, y); else p.lineTo(x, y);
+      }
+    }
+    const lift = 1 - fog * 0.4;
+    ctx.lineWidth = 0.8; ctx.strokeStyle = rgba(C.moss, 0.16 * lift * end); ctx.stroke(paths[0]);
+    ctx.lineWidth = 1; ctx.strokeStyle = rgba(C.moss, 0.42 * lift * end); ctx.stroke(paths[1]);
+    ctx.lineWidth = 1.5; ctx.strokeStyle = rgba(C.mist, 0.34 * lift * end); ctx.stroke(paths[2]);
+    ctx.lineWidth = 1.3; ctx.strokeStyle = rgba(C.mist, (0.3 + 0.35 * breathAmp) * end); ctx.stroke(paths[3]);
+    // 포자
+    const s = this.sp; ctx.fillStyle = rgba(C.spore, 0.9 * end);
+    ctx.beginPath();
+    for (let i = 0; i < s.x.length; i++) {
+      if (s.life[i] <= 0) continue;
+      s.vx[i] += (noise(s.x[i] * 0.004, s.y[i] * 0.004 + t * 0.2) - 0.5) * 60 * dt;
+      s.vy[i] -= (dissolve > 0 ? 30 : 6) * dt;
+      s.x[i] += s.vx[i] * dt; s.y[i] += s.vy[i] * dt;
+      s.life[i] -= s.dec[i] * dt * (dissolve > 0 ? 0.35 : 1);
+      if (s.y[i] < -10) { s.life[i] = 0; continue; }
+      const r = 0.7 + s.life[i] * 1.3;
+      ctx.moveTo(s.x[i] + r, s.y[i]); ctx.arc(s.x[i], s.y[i], r, 0, TAU);
+    }
+    ctx.fill();
+  },
+};
+
+/* =========================================================================
+   작품 2 · 바다 — 흐름장의 궤적
+   ========================================================================= */
+const sea = {
+  key: 'sea', theme: '바다', title: '조류의 기억',
+  concept: '바다는 지나간 모든 것의 움직임을 기억한다.',
+  hand: '손은 바다를 지나가는 존재예요. 머물러 있으면 물이 바위를 돌듯 손을 비켜 흐르고, 지나가면 그 뒤에 소용돌이가 좌우로 번갈아 남아 20초 동안 천천히 잊혀 갑니다.',
+  lang: '수천 개의 물 입자가 남기는 궤적. 형태 없이 "흐름의 장"만 그립니다. 소용돌이는 그려지지 않고 흐름이 휘는 모양으로만 보여요.',
+  acts: [
+    ['고요', '아무것도 지나가지 않은 바다. 가는 물결이 수평으로 곧게, 아주 느리게 흐릅니다.'],
+    ['기억', '흐름이 갈라지고 휘어집니다. 오래전 무언가가 지나간 자리에서 소용돌이가 떠오르고, 관람객이 남긴 소용돌이가 그 위에 겹쳐요.'],
+    ['썰물', '모든 흐름이 화면 한가운데로 나선을 그리며 빨려 들어가고, 마지막 물방울이 한 점으로 사라집니다.'],
+  ],
+  ue: {
+    fam: [['6', '유체·장'], ['3', '입자·흐름']],
+    how: '2D 유체에 손이 지나간 자리마다 회전력을 넣고 20초 감쇠를 걸어요. 궤적은 유체 속도장을 따라가는 리본 입자로 그립니다. 멈춘 손은 유체 안의 고정 장애물(반경 90px)로 처리합니다.',
+    files: '없음. 원하면 ImageFlow용 원본 이미지(깊은 바다 색 번짐 그림 1장)로 궤적 대신 그림을 흘릴 수 있어요.',
+  },
+  params: [['소용돌이 생성', '손 속도 120px/s 이상일 때 0.06초마다'], ['소용돌이 세기', '손 속도 / 600 (0.3~1.4), 좌우 교대'], ['소용돌이 반경', '짧은 변 × 0.16'], ['지속', '20초 선형 감쇠'], ['멈춘 손 비킴 반경', '짧은 변 × 0.12']],
+  C: { deep: [24, 120, 140], aqua: [140, 226, 220], pearl: [236, 246, 240] },
+  init() {
+    const n = count(S, 330, 600, 2200);
+    this.n = n;
+    this.x = new Float32Array(n); this.y = new Float32Array(n); this.px = new Float32Array(n); this.py = new Float32Array(n);
+    this.s = new Float32Array(n); this.alive = new Uint8Array(n);
+    this.v = []; this.acc = 0; this.flip = 1;
+    this.memories = [];
+    const r = rng(23);
+    for (let k = 0; k < 7; k++) this.memories.push({ x: S.W * (0.12 + 0.76 * r()), y: S.H * (0.18 + 0.64 * r()), s: (r() < 0.5 ? -1 : 1) * (0.7 + 0.5 * r()), at: 15 + k * 2.4 });
+    this.seek(0);
+  },
+  reset(i) { this.x[i] = this.px[i] = Math.random() * S.W; this.y[i] = this.py[i] = Math.random() * S.H; },
+  seek(t) {
+    for (let i = 0; i < this.n; i++) { this.reset(i); this.s[i] = 0.6 + Math.random() * 0.8; this.alive[i] = 1; }
+    this.v = [];
+    // 2막 이후로 들어오면 이미 떠오른 기억 소용돌이를 되살린다
+    for (const m of this.memories) if (t > m.at) this.v.push({ x: m.x, y: m.y, s: m.s, life: clamp(1 - (t - m.at) / 30, 0.3, 1), R: S.min * 0.2, mem: true });
+  },
+  step(dt, t, hands) {
+    const { ctx, W, H } = S, C = this.C;
+    const turb = 0.06 + 0.84 * smooth(13, 19, t);
+    const drain = smooth(35, 42, t);
+    const end = 1 - smooth(46.5, 48, t);
+    const Rv = S.min * 0.16, Ro = S.min * 0.12;
+    // 기억: 예정된 시각에 오래된 소용돌이가 떠오른다
+    for (const m of this.memories) if (!m.done && t > m.at) { m.done = true; this.v.push({ x: m.x, y: m.y, s: m.s, life: 1, R: S.min * 0.2, mem: true }); }
+    if (t < 1e-3) for (const m of this.memories) m.done = false;
+    // 지나가는 손 → 좌우로 번갈아 소용돌이 (카르만 와열)
+    this.acc += dt;
+    for (const h of hands) {
+      if (h.speed > 120 && this.acc > 0.06) {
+        const nx = -h.vy / h.speed, ny = h.vx / h.speed;
+        this.flip = -this.flip;
+        this.v.push({ x: h.x + nx * Rv * 0.35 * this.flip, y: h.y + ny * Rv * 0.35 * this.flip, s: this.flip * clamp(h.speed / 600, 0.3, 1.4), life: 1, R: Rv });
+        if (this.v.length > 90) this.v.shift();
+      }
+    }
+    if (this.acc > 0.06) this.acc = 0;
+    for (const v of this.v) v.life -= dt / 20;
+    this.v = this.v.filter(v => v.life > 0);
+
+    ctx.globalCompositeOperation = 'source-over';
+    // 1막은 잔상을 길게 남겨 고요한 수평 물결이 보이게, 2막부터 짧게
+    ctx.fillStyle = `rgba(2,7,13,${lerp(0.028, 0.075, smooth(13, 19, t)) + 0.1 * (1 - end)})`; ctx.fillRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2, sc = 0.0018, U = 34;
+    const pA = new Path2D(), pB = new Path2D();
+    let left = 0;
+    for (let i = 0; i < this.n; i++) {
+      if (!this.alive[i]) continue;
+      const x = this.x[i], y = this.y[i];
+      this.px[i] = x; this.py[i] = y;
+      const ang = (noise(x * sc + t * 0.025, y * sc * 1.4) - 0.5) * TAU * turb;
+      let vx = Math.cos(ang) * U * this.s[i], vy = Math.sin(ang) * U * this.s[i] * 0.8;
+      for (const v of this.v) {
+        const dx = x - v.x, dy = y - v.y, d2 = dx * dx + dy * dy;
+        if (d2 > v.R * v.R * 6) continue;
+        const f = v.life * Math.exp(-d2 / (v.R * v.R)) * 150 * v.s;
+        const d = Math.sqrt(d2) + 1;
+        vx += -dy / d * f; vy += dx / d * f;
+      }
+      // 머문 손 = 장애물: 물이 바깥으로 비켜 흐름
+      for (const h of hands) {
+        const dx = x - h.x, dy = y - h.y, d = Math.hypot(dx, dy) + 1;
+        if (d < Ro * 2.2) { const k = Math.pow(1 - clamp(d / (Ro * 2.2), 0, 1), 2) * 260; vx += dx / d * k; vy += dy / d * k; }
+      }
+      if (drain > 0) {
+        const dx = cx - x, dy = cy - y, d = Math.hypot(dx, dy) + 1;
+        vx = lerp(vx, (dx / d * 1.0 - dy / d * 0.55) * (90 + 260 * drain), drain);
+        vy = lerp(vy, (dy / d * 1.0 + dx / d * 0.55) * (90 + 260 * drain), drain);
+        if (d < 6) { if (t > 42) { this.alive[i] = 0; continue; } this.reset(i); continue; }
+      }
+      this.x[i] = x + vx * dt; this.y[i] = y + vy * dt;
+      if (this.x[i] < -4 || this.x[i] > W + 4 || this.y[i] < -4 || this.y[i] > H + 4) {
+        if (drain > 0.5) { this.alive[i] = 0; continue; }
+        // 고요한 바다는 왼쪽에서 다시 흘러 들어온다
+        this.x[i] = this.px[i] = vx >= 0 ? 0 : W; this.y[i] = this.py[i] = Math.random() * H;
+        continue;
+      }
+      left++;
+      const p = i % 4 === 0 ? pB : pA;
+      p.moveTo(this.px[i], this.py[i]); p.lineTo(this.x[i], this.y[i]);
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineWidth = 1;
+    const calm = 1 - smooth(13, 19, t);
+    ctx.strokeStyle = rgba(C.deep, (0.55 + 0.3 * calm) * end); ctx.stroke(pA);
+    ctx.strokeStyle = rgba(C.aqua, (0.42 + 0.25 * calm) * end); ctx.stroke(pB);
+    // 썰물의 끝: 한 점
+    // 썰물의 끝: 흐름이 다 빠져나간 자리에 작은 한 점이 맺혔다 꺼진다
+    const point = smooth(42.5, 45.5, t) * end;
+    if (point > 0.01) {
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 26);
+      g.addColorStop(0, rgba(C.pearl, 0.55 * point)); g.addColorStop(0.18, rgba(C.aqua, 0.25 * point)); g.addColorStop(1, rgba(C.aqua, 0));
+      ctx.fillStyle = g; ctx.fillRect(cx - 26, cy - 26, 52, 52);
+    }
+    void left;
+  },
+};
+
+/* =========================================================================
+   작품 3 · 우주 — 궤도와 중력
+   ========================================================================= */
+const space = {
+  key: 'space', theme: '우주', title: '중력의 편지',
+  concept: '서로 닿을 수 없는 것들이 끌어당기며, 궤도로 편지를 쓴다.',
+  hand: '손은 또 하나의 별이에요. 손을 대면 그 자리에 금빛 별이 켜지고 가까운 궤도가 손 쪽으로 기웁니다. 오래 머물면 작은 빛들을 위성으로 붙잡고, 빠르게 스치면 빛들을 튕겨 냈다가 3초에 걸쳐 제 궤도로 돌려보냅니다.',
+  lang: '천체는 점이 아니라 지나간 궤적의 호(arc)로 그립니다. 안쪽은 빠르게, 바깥은 느리게 도는 케플러 속도 차이가 화면의 리듬이 됩니다.',
+  acts: [
+    ['탄생', '어둠 한가운데 한 점이 숨을 고르다 터지고, 빛들이 바깥으로 곧게 흩어집니다.'],
+    ['궤도', '흩어진 빛들이 저마다의 타원에 붙들려 돌기 시작하고, 궤도의 흔적이 겹겹이 편지를 씁니다.'],
+    ['수렴', '중력이 이기기 시작합니다. 모든 궤도가 나선을 그리며 처음의 한 점으로 돌아가고, 그 점마저 꺼집니다.'],
+  ],
+  ue: {
+    fam: [['3', '입자·흐름'], ['7', '군집']],
+    how: '천체는 궤도 위를 도는 입자와 리본 꼬리, 손은 군집의 "다가오기(끌림)" 대상이에요. 붙잡기는 손 주위 회전 궤도로, 스치기는 충격 후 복원 값으로 옮깁니다. 카메라는 고정이고 장면 안의 빛만 움직입니다.',
+    files: '없음. 배경 그림도 쓰지 않습니다(완전한 어둠이 작품의 일부).',
+  },
+  params: [['끌림 반경', '짧은 변 × 0.28'], ['궤도 기울기', '반경 안 거리의 최대 45%'], ['붙잡기', '1.2초 머물면 반경 × 0.45 안의 빛 최대 40개, 6초 후 놓아줌'], ['스치기 임계 속도', '500 px/s, 손 속도의 0.35배로 튕김'], ['복원', '3초 (지수 감쇠)']],
+  C: { violet: [128, 120, 255], star: [222, 228, 255], gold: [244, 196, 110] },
+  init() {
+    const r = rng(31), n = count(S, 1500, 260, 720), Rm = S.min * 0.48;
+    this.b = [];
+    for (let i = 0; i < n; i++) {
+      const a = Rm * (0.07 + 0.93 * Math.pow(r(), 0.75));
+      this.b.push({ a, e: r() * 0.42, rot: r() * TAU, th0: r() * TAU, w: Math.min(2.4, 0.2 * Math.pow(a / Rm, -1.5)), ox: 0, oy: 0, vx: 0, vy: 0, cap: 0, cth: 0, gold: r() < 0.06, lx: NaN, ly: NaN });
+    }
+    this.guides = this.b.filter((_, i) => i % 9 === 0);
+  },
+  seek() { for (const b of this.b) { b.ox = b.oy = b.vx = b.vy = 0; b.cap = 0; b.lx = NaN; } },
+  /** 시간 t 에서 궤도 위치 (탄생 확장 → 궤도 → 나선 수렴) */
+  pos(b, t) {
+    const birth = easeOut(smooth(1.4, 11, t)), col = smooth(36, 46, t);
+    const radial = 1 - smooth(6, 14, t);                       // 탄생 직후엔 곧게 퍼짐
+    const ang = b.th0 + b.w * (t - 1.4) * (1 - radial * 0.9) + col * col * b.w * 14;
+    const shrink = Math.pow(1 - col, 1.6);
+    const ax = b.a * birth * shrink, ay = ax * (1 - b.e * (1 - radial));
+    const lx = ax * Math.cos(ang), ly = ay * Math.sin(ang), c = Math.cos(b.rot), s = Math.sin(b.rot);
+    return [S.W / 2 + lx * c - ly * s, S.H / 2 + lx * s + ly * c];
+  },
+  step(dt, t, hands) {
+    const { ctx, W, H } = S, C = this.C;
+    const end = 1 - smooth(46.6, 48, t), orbit = smooth(12, 18, t) * (1 - smooth(36, 40, t));
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = `rgba(2,2,8,${t < 2 ? 0.35 : 0.13})`; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+    const cx = W / 2, cy = H / 2;
+    const glow = (x, y, r, c, a) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgba(c, a)); g.addColorStop(1, rgba(c, 0)); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); };
+    // 1막: 숨 고르는 점 → 폭발
+    if (t < 1.6) glow(cx, cy, 8 + 5 * Math.sin(t * 7), C.gold, 0.9);
+    else if (t < 4) glow(cx, cy, S.min * 0.55 * (t - 1.6) / 2.4, C.star, 0.45 * (1 - (t - 1.6) / 2.4));
+    // 3막 끝: 다시 한 점
+    const col = smooth(36, 46, t);
+    if (col > 0.3) glow(cx, cy, 6 + 22 * col, C.gold, 0.7 * col * end);
+    // 2막: 궤도의 줄(편지지)
+    if (orbit > 0.01) {
+      ctx.lineWidth = 1; ctx.strokeStyle = rgba(C.violet, 0.05 * orbit);
+      const path = new Path2D();
+      for (const b of this.guides) {
+        const ax = b.a, ay = ax * (1 - b.e);
+        path.moveTo(cx + ax * Math.cos(b.rot), cy + ax * Math.sin(b.rot));
+        path.ellipse(cx, cy, ax, ay, b.rot, 0, TAU);
+      }
+      ctx.stroke(path);
+    }
+    // 손 = 별
+    const Rh = S.min * 0.28;
+    for (const h of hands) {
+      glow(h.x, h.y, 34, C.gold, 0.55);
+      glow(h.x, h.y, 6, C.star, 0.9);
+    }
+    const pV = new Path2D(), pS = new Path2D(), pG = new Path2D();
+    for (const b of this.b) {
+      let [x, y] = this.pos(b, t);
+      let tx = 0, ty = 0;
+      for (const h of hands) {
+        const dx = h.x - x, dy = h.y - y, d = Math.hypot(dx, dy) + 1;
+        if (d < Rh && t > 3) {
+          const k = (1 - d / Rh);
+          tx += dx * k * 0.45; ty += dy * k * 0.45;            // 궤도가 손 쪽으로 기울기
+          if (h.still > 1.2 && d < Rh * 0.45 && b.cap <= 0 && this.capCount() < 40) { b.cap = 6; b.cth = Math.atan2(y - h.y, x - h.x); b.hand = h; }
+          if (h.speed > 500) { const f = k * 0.35; b.vx += h.vx * f; b.vy += h.vy * f; }
+        }
+      }
+      if (b.cap > 0) {                                        // 위성: 손 주위를 돈다
+        b.cap -= dt;
+        const h = hands.includes(b.hand) ? b.hand : null;
+        if (!h) b.cap = 0;
+        else { b.cth += dt * 3.2; const rr = 18 + (b.a % 30); tx = h.x + Math.cos(b.cth) * rr - x; ty = h.y + Math.sin(b.cth) * rr * 0.8 - y; }
+      }
+      // 스프링으로 오프셋을 목표로 (복원 ≈ 3초)
+      b.vx += (tx - b.ox) * 9 * dt; b.vy += (ty - b.oy) * 9 * dt;
+      b.vx *= Math.exp(-3.4 * dt); b.vy *= Math.exp(-3.4 * dt);
+      b.ox += b.vx * dt; b.oy += b.vy * dt;
+      x += b.ox; y += b.oy;
+      const p = b.gold || b.cap > 0 ? pG : (b.a % 3 < 1 ? pS : pV);
+      if (Number.isFinite(b.lx) && Math.abs(x - b.lx) + Math.abs(y - b.ly) < 80) { p.moveTo(b.lx, b.ly); p.lineTo(x, y); }
+      else p.rect(x, y, 1, 1);
+      b.lx = x; b.ly = y;
+    }
+    if (t < 1.4) return;
+    ctx.lineWidth = 1.3;
+    ctx.strokeStyle = rgba(C.violet, 0.75 * end); ctx.stroke(pV);
+    ctx.strokeStyle = rgba(C.star, 0.8 * end); ctx.stroke(pS);
+    ctx.strokeStyle = rgba(C.gold, 0.9 * end); ctx.stroke(pG);
+  },
+  capCount() { let c = 0; for (const b of this.b) if (b.cap > 0) c++; return c; },
+};
+
+/* =========================================================================
+   작품 4 · 꽃밭 — 극좌표 곡선과 번짐
+   ========================================================================= */
+const flower = {
+  key: 'flower', theme: '꽃밭', title: '피었다 지는 시간',
+  concept: '꽃은 피는 순간보다 지는 동안 더 오래 존재한다.',
+  hand: '손은 햇빛이에요. 빛이 닿은 씨앗은 따뜻해지며 먼저 피고, 빛 아래의 꽃은 더 크게 열립니다. 꽃이 지는 3막에서도 손을 대고 있으면 그 꽃은 조금 더 오래 머뭅니다.',
+  lang: '꽃잎은 장미 곡선(r = cos kθ) 한 줄로만 그립니다. 지는 꽃은 그 선이 끝에서부터 실처럼 풀려 사라지고, 꽃이 있던 자리에 물감처럼 번진 자국을 남깁니다.',
+  acts: [
+    ['씨앗', '어둠 위에 작은 씨앗들이 흩어져 숨을 고릅니다. 빛이 닿은 씨앗만 따뜻하게 깨어나요.'],
+    ['개화', '화면 한가운데에서 바깥으로 봄이 번져 가듯 씨앗이 차례로 선의 꽃이 됩니다.'],
+    ['낙화', '꽃잎의 선이 실처럼 풀리며 흘러내리고, 꽃이 있던 자리에는 번진 자국만 남았다가 천천히 사라집니다.'],
+  ],
+  ue: {
+    fam: [['1', '객체 반응'], ['2', '표면 그리기·혼합']],
+    how: '꽃은 카탈로그의 꽃 객체가 손에 닿으면 피는 반응(피기)으로, 지는 자국은 그리기 표면에 색을 떨어뜨리고 옅어지게 하는 값으로 옮겨요. 추상적인 선 꽃 모양은 객체 피부 이미지로 입힙니다.',
+    files: '객체 피부 이미지 1~3장(선으로 그린 장미 곡선 꽃잎, 투명 배경). 번진 자국은 그리기 계열 색 값이라 파일이 필요 없어요.',
+  },
+  params: [['햇빛 반경', '짧은 변 × 0.17'], ['머문 손 개화', '0.6초 비추면 핌'], ['스치는 손 개화', '200px/s 이상, 지나간 자리 즉시 핌'], ['빛 아래 꽃 크기', '최대 +30%'], ['3막 지는 시점 늦추기', '빛 아래 최대 +6초'], ['번진 자국', '6초 동안 반경 0.6→2.4배로 번지며 옅어짐']],
+  C: { rose: [226, 122, 146], sun: [244, 200, 122], plum: [112, 58, 110] },
+  /** 번진 자국 스프라이트 — 한 번만 그리고 drawImage 로 찍는다 (자국마다 gradient 를 만들지 않음) */
+  sprite() {
+    if (this._sp) return this._sp;
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, rgba(this.C.plum, 1)); gr.addColorStop(0.45, rgba(this.C.rose, 0.45)); gr.addColorStop(1, rgba(this.C.plum, 0));
+    g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    return (this._sp = c);
+  },
+  init() {
+    const r = rng(41), n = count(S, 4600, 50, 170), cx = S.W / 2, cy = S.H / 2, maxD = Math.hypot(cx, cy);
+    this.seeds = [];
+    const cols = Math.ceil(Math.sqrt(n * S.W / S.H)), rows = Math.ceil(n / cols);
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      if (this.seeds.length >= n) break;
+      const x = (i + 0.1 + r() * 0.8) / cols * S.W, y = (j + 0.1 + r() * 0.8) / rows * S.H;
+      const d = Math.hypot(x - cx, y - cy) / maxD, big = r();
+      this.seeds.push({
+        x, y, k: [2, 3, 4, 5, 3][Math.floor(r() * 5)],
+        R: S.min * (0.022 + 0.085 * big * big),                // 작은 꽃 다수, 큰 꽃 소수
+        bright: big > 0.72, rot: r() * TAU,
+        auto: 15.5 + d * 17 + r() * 2.5, at: Infinity, warm: 0, fall0: 36.5 + r() * 6, fallAt: 0, light: 0, ph: r() * TAU,
+      });
+    }
+    this.seek(0);
+  },
+  seek() { for (const s of this.seeds) { s.at = s.auto; s.warm = 0; s.light = 0; s.fallAt = s.fall0; } },
+  step(dt, t, hands) {
+    const { ctx, W, H } = S, C = this.C;
+    const end = 1 - smooth(46.5, 48, t), a1 = smooth(0.5, 4, t);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#0a060c'; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+    const R = S.min * 0.17;
+    for (const h of hands) {                                  // 햇빛 = 손
+      const g = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, R);
+      g.addColorStop(0, rgba(C.sun, 0.2)); g.addColorStop(1, rgba(C.sun, 0));
+      ctx.fillStyle = g; ctx.fillRect(h.x - R, h.y - R, R * 2, R * 2);
+    }
+    const sp = this.sprite();
+    const dim = new Path2D(), lit = new Path2D(), thread = new Path2D(), sunDots = new Path2D(), seedDots = new Path2D();
+    for (const s of this.seeds) {
+      let light = 0;
+      for (const h of hands) {
+        const k = fall(h, s.x, s.y, R);
+        light = Math.max(light, k);
+        if (h.speed > 200 && k > 0.35 && t < 36) s.at = Math.min(s.at, t);   // 햇살이 쓸고 지나감
+      }
+      s.light = lerp(s.light, light, 1 - Math.exp(-6 * dt));
+      if (t < 36) { s.warm = light > 0.5 ? s.warm + dt : Math.max(0, s.warm - dt); if (s.warm > 0.6) s.at = Math.min(s.at, t); }
+      if (t >= 36 && light > 0.5) s.fallAt = Math.min(Math.max(s.fallAt, t + dt), s.fall0 + 6);   // 빛 아래 꽃은 더 오래 머문다
+      const open = easeOut((t - s.at) / 3);
+      if (open <= 0) {                                        // 씨앗: 숨 쉬는 점
+        const r = 1.3 + 0.6 * Math.sin(t * 1.4 + s.ph) + s.light * 2.6;
+        const P = s.light > 0.15 ? sunDots : seedDots;
+        P.moveTo(s.x + r, s.y); P.arc(s.x, s.y, r, 0, TAU);
+        continue;
+      }
+      const drop = clamp((t - s.fallAt) / 5, 0, 1);
+      // 번진 자국: 지기 시작하면 아래로 살짝 흘러내리며 번진다
+      if (drop > 0) {
+        const k = clamp((t - s.fallAt) / 6, 0, 1), rr = s.R * (0.6 + 1.8 * easeOut(k));
+        const a = 0.22 * Math.sin(Math.PI * Math.min(1, k * 1.1)) * end;
+        if (a > 0.003) { ctx.globalAlpha = a; ctx.drawImage(sp, s.x - rr, s.y - rr + s.R * 0.5 * k, rr * 2, rr * 2); ctx.globalAlpha = 1; }
+      }
+      if (drop >= 1) continue;
+      const r = s.R * open * (1 + 0.3 * s.light) * (1 + 0.04 * Math.sin(t * 1.3 + s.ph));
+      const N = Math.round(clamp(r * 1.1, 28, 90));
+      // 지는 꽃: 곡선이 끝에서부터 풀려 짧아지고, 남은 선은 천천히 흘러내린다
+      const keep = Math.max(2, Math.round(N * (1 - drop)));
+      const sink = drop * drop * s.R * 1.6;
+      const P = drop > 0 ? thread : (s.bright || s.light > 0.3 ? lit : dim);
+      for (let i = 0; i <= keep; i++) {
+        const th = i / N * TAU, rr = r * Math.cos(s.k * th);
+        const x = s.x + rr * Math.cos(th + s.rot) + Math.sin(t * 0.8 + i * 0.3) * drop * 3;
+        const y = s.y + rr * Math.sin(th + s.rot) + sink;
+        if (i === 0) P.moveTo(x, y); else P.lineTo(x, y);
+      }
+      if (drop === 0) { const c = 1.4 + 0.8 * open; sunDots.moveTo(s.x + c, s.y); sunDots.arc(s.x, s.y, c, 0, TAU); }
+    }
+    ctx.lineWidth = 1;
+    ctx.fillStyle = rgba(C.sun, 0.55 * a1 * end); ctx.fill(seedDots);
+    ctx.fillStyle = rgba(C.sun, 0.95 * end); ctx.fill(sunDots);
+    ctx.strokeStyle = rgba(C.rose, 0.32 * end); ctx.stroke(dim);
+    ctx.lineWidth = 1.3;
+    ctx.strokeStyle = rgba(C.rose, 0.75 * end); ctx.stroke(lit);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = rgba(C.rose, 0.55 * end); ctx.stroke(thread);
+  },
+};
+
+const WORKS = [forest, sea, space, flower];
+
+/* =========================================================================
+   손: 실제 포인터 여러 개 + 가상 손
+   ========================================================================= */
+const stage = document.getElementById('stage'), cv = document.getElementById('cv');
+S.ctx = cv.getContext('2d');
+const pointers = new Map();           // pointerId → {x,y}
+let lastReal = -99;
+const tracked = new Map();            // id → 손 상태 (속도·머문 시간)
+const virtual = { x: 0, y: 0, seg: 0, segT: 0 };
+
+function local(e) { const r = stage.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+stage.addEventListener('pointerdown', e => { stage.setPointerCapture?.(e.pointerId); pointers.set(e.pointerId, local(e)); });
+stage.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || pointers.has(e.pointerId)) pointers.set(e.pointerId, local(e)); });
+const drop = e => { if (e.pointerType !== 'mouse' || e.type === 'pointerleave') pointers.delete(e.pointerId); };
+stage.addEventListener('pointerup', drop);
+stage.addEventListener('pointercancel', drop);
+stage.addEventListener('pointerleave', drop);
+
+/** 가상 손 시나리오: 천천히 이동 → 머묾(위치 반응) → 빠르게 스침(속도 반응) 반복 */
+const VSEG = [
+  { d: 3.2, from: [0.22, 0.55], to: [0.38, 0.48] },
+  { d: 2.4, still: true },
+  { d: 0.9, from: [0.38, 0.48], to: [0.78, 0.36] },
+  { d: 2.6, from: [0.78, 0.36], to: [0.66, 0.66] },
+  { d: 2.2, still: true },
+  { d: 0.8, from: [0.66, 0.66], to: [0.22, 0.55] },
+];
+function updateVirtual(dt) {
+  let s = VSEG[virtual.seg];
+  virtual.segT += dt;
+  if (virtual.segT > s.d) { virtual.segT = 0; virtual.seg = (virtual.seg + 1) % VSEG.length; s = VSEG[virtual.seg]; }
+  if (s.still) return;
+  const k = smooth(0, 1, virtual.segT / s.d);
+  virtual.x = lerp(s.from[0], s.to[0], k) * S.W; virtual.y = lerp(s.from[1], s.to[1], k) * S.H;
+}
+
+function collectHands(dt, now, t) {
+  if (pointers.size) lastReal = now;
+  const list = [];
+  for (const [id, p] of pointers) list.push([id, p.x, p.y, false]);
+  const inAct2 = t >= ACTS[1][0] && t < ACTS[1][1];
+  if (!pointers.size && now - lastReal > 2 && inAct2) { updateVirtual(dt); list.push(['v', virtual.x, virtual.y, true]); }
+  const hands = [], seen = new Set();
+  for (const [id, x, y, isV] of list) {
+    seen.add(id);
+    let h = tracked.get(id);
+    if (!h) { h = { x, y, vx: 0, vy: 0, speed: 0, still: 0, virtual: isV }; tracked.set(id, h); }
+    const ivx = (x - h.x) / Math.max(dt, 1e-3), ivy = (y - h.y) / Math.max(dt, 1e-3), k = 1 - Math.exp(-14 * dt);
+    h.vx = lerp(h.vx, ivx, k); h.vy = lerp(h.vy, ivy, k); h.speed = Math.hypot(h.vx, h.vy);
+    h.x = x; h.y = y;
+    h.still = h.speed < 40 ? h.still + dt : 0;
+    hands.push(h);
+  }
+  for (const id of [...tracked.keys()]) if (!seen.has(id)) tracked.delete(id);
+  return hands;
+}
+
+const ringsEl = document.getElementById('rings'), ringPool = [];
+function drawRings(hands) {
+  while (ringPool.length < hands.length) { const d = document.createElement('div'); d.className = 'ring'; d.innerHTML = '<span></span>'; ringsEl.appendChild(d); ringPool.push(d); }
+  ringPool.forEach((el, i) => {
+    const h = hands[i];
+    el.classList.toggle('on', !!h);
+    if (!h) return;
+    el.style.transform = `translate(${h.x}px,${h.y}px)`;
+    el.firstChild.textContent = h.virtual ? '가상 손' : '';
+  });
+}
+
+/* =========================================================================
+   타임라인 · UI
+   ========================================================================= */
+const $ = id => document.getElementById(id);
+const fmt = s => `0:${String(Math.floor(s)).padStart(2, '0')}`;
+let wi = 0, cur = WORKS[0], t = 0, actIdx = -1;
+let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function clearCanvas() { const c = S.ctx; c.globalCompositeOperation = 'source-over'; c.fillStyle = '#000'; c.fillRect(0, 0, S.W, S.H); }
+
+function resize() {
+  const r = stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (Math.abs(r.width - S.W) < 1 && Math.abs(r.height - S.H) < 1 && dpr === S.dpr) return;
+  S.W = r.width; S.H = r.height; S.dpr = dpr; S.min = Math.min(S.W, S.H);
+  cv.width = Math.round(S.W * dpr); cv.height = Math.round(S.H * dpr);
+  S.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  clearCanvas();
+  cur.init(); cur.seek(t);
+}
+
+/** 작품 i 의 시각 at 으로 진입 (막 버튼은 그 막의 상태가 이미 갖춰진 채로 들어간다) */
+function setWork(i, at = 0) {
+  wi = (i + WORKS.length) % WORKS.length; cur = WORKS[wi]; t = at; actIdx = -1;
+  clearCanvas(); cur.init(); cur.seek(at);
+  // 궤적이 쌓이는 작품은 막 중간으로 들어갈 때 짧게 미리 돌려 화면을 채운다
+  if (at > 0) { const hs = []; for (let k = 0; k < 45; k++) { cur.step(1 / 30, t, hs); t += 1 / 30; } }
+  $('capTitle').textContent = `${cur.theme} — ${cur.title}`;
+  $('concept').textContent = cur.concept;
+  $('handMeaning').textContent = cur.hand;
+  $('lang').textContent = cur.lang;
+  $('acts').innerHTML = cur.acts.map((a, k) => `<li><span class="tc">${fmt(ACTS[k][0])}–${fmt(ACTS[k][1])}</span><div><b>${k + 1}막 · ${a[0]}</b>${a[1]}</div></li>`).join('');
+  $('ueFam').innerHTML = cur.ue.fam.map(([n, name]) => `<span class="chip"><em>${n}</em>${name}</span>`).join('');
+  $('ueHow').textContent = cur.ue.how;
+  $('ueFiles').textContent = cur.ue.files;
+  $('params').innerHTML = cur.params.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  $('bar').innerHTML = cur.acts.map((a, k) => `<button type="button" data-k="${k}" style="flex:${ACTS[k][1] - ACTS[k][0]}" aria-label="${k + 1}막 ${a[0]}으로 이동"><i></i>${k + 1}막 ${a[0]}</button>`).join('');
+  [...$('tabs').children].forEach((b, k) => { b.setAttribute('aria-selected', String(k === wi)); b.tabIndex = k === wi ? 0 : -1; });
+  updateUI();
+}
+
+function updateUI() {
+  const k = t < ACTS[1][0] ? 0 : t < ACTS[2][0] ? 1 : 2;
+  [...$('bar').children].forEach((b, i) => {
+    b.querySelector('i').style.width = `${clamp((t - ACTS[i][0]) / (ACTS[i][1] - ACTS[i][0]), 0, 1) * 100}%`;
+    b.classList.toggle('on', i === k);
+  });
+  if (k !== actIdx) { actIdx = k; [...$('acts').children].forEach((li, i) => li.classList.toggle('on', i === k)); }
+  $('capAct').textContent = `${k + 1}막 ${cur.acts[k][0]} · ${fmt(t)} / ${fmt(DUR)}`;
+}
+
+function setPlaying(p) { playing = p; $('play').textContent = playing ? '일시정지' : '재생'; }
+
+$('tabs').innerHTML = WORKS.map((w, k) => `<button type="button" role="tab" data-i="${k}">${w.theme} · ${w.title}</button>`).join('');
+$('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setWork(+b.dataset.i); });
+$('tabs').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.stopPropagation(); setWork(wi + (e.key === 'ArrowRight' ? 1 : -1)); $('tabs').children[wi].focus();
+});
+$('bar').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setWork(wi, ACTS[+b.dataset.k][0] + 0.5); });
+$('play').addEventListener('click', () => setPlaying(!playing));
+$('prev').addEventListener('click', () => setWork(wi - 1));
+$('next').addEventListener('click', () => setWork(wi + 1));
+document.addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('input,textarea')) return;
+  if (e.key === ' ') { e.preventDefault(); setPlaying(!playing); }
+  else if (e.key === 'ArrowRight') setWork(wi + 1);
+  else if (e.key === 'ArrowLeft') setWork(wi - 1);
+  else if (['1', '2', '3'].includes(e.key)) setWork(wi, ACTS[+e.key - 1][0] + 0.5);
+});
+
+let last = performance.now(), hands = [];
+function frame(ms) {
+  const dt = Math.min(0.05, Math.max(0, (ms - last) / 1000)); last = ms;
+  resize();
+  if (playing) {
+    t += dt;
+    hands = collectHands(dt, ms / 1000, t);
+    cur.step(dt, t, hands);
+    if (t >= DUR) setWork(wi + 1);
+  }
+  drawRings(playing ? hands : []);
+  updateUI();
+  requestAnimationFrame(frame);
+}
+
+setPlaying(playing);
+resize();
+// 움직임 줄이기 설정이면 2막 한가운데 장면을 정지 화면으로 보여 준다
+setWork(0, playing ? 0 : 22);
+requestAnimationFrame(frame);
+window.__proto = { get t() { return t; }, get work() { return cur.key; }, setWork, setPlaying };
+</script>
+</body>
+</html>
