@@ -1,7 +1,7 @@
 // 작품을 실제 파일로 렌더링: 작품마다 48초 MP4(1920×1080 30fps) + 2막 하이라이트 GIF + 막별 JPG
 //   node media-art/check/render.mjs [html 파일, 기본 index.html] [작품 번호들, 기본 0,1,2,3]
 // 페이지 시계를 가상으로 바꿔 1/30초씩 정확히 넘기며 프레임을 찍으므로, 기기 성능과 상관없이 끊김 없는 영상이 나온다.
-// 결과: media-art/renders/<작품>/<작품>.mp4, highlight.gif, act1.jpg~act3.jpg  (mp4 는 git 에 올리지 않음)
+// 결과: media-art/renders/<작품>/<작품>.mp4(48초 원본, git 제외), preview.mp4(6초), highlight.gif(4초), act1.jpg~act3.jpg
 import { chromium } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -52,7 +52,8 @@ for (const w of works) {
   await page.addStyleTag({ content: '.cap,.caption,#caption,.hand em,.ring span{display:none!important}' });
   await page.evaluate((w) => { window.__proto.setWork(w, 0); window.__proto.setPlaying(true); }, w);
   const stage = page.locator('#stage');
-  const total = Number(process.env.RENDER_FRAMES || DUR * FPS);   // RENDER_FRAMES 로 짧게 시험 가능
+  // 48초 정각 프레임은 다음 작품의 시작이므로 찍지 않는다(0 ~ 47.97초, 1439프레임). RENDER_FRAMES 로 짧게 시험 가능
+  const total = Number(process.env.RENDER_FRAMES || DUR * FPS - 1);
   for (let i = 0; i < total; i++) {
     await page.evaluate((ms) => window.__advance(ms), 1000 / FPS);
     // 자가 검사: 이 작품의 시각 (i+1)/FPS 근처여야 한다
@@ -66,11 +67,12 @@ for (const w of works) {
   const seq = join(frames, '%04d.png');
   const ff = (args) => execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...args]);
   ff(['-framerate', String(FPS), '-i', seq, '-vf', 'scale=1920:1080:flags=lanczos,format=yuv420p', '-c:v', 'libx264', '-crf', '20', '-preset', 'slow', '-movflags', '+faststart', join(out, `${key}.mp4`)]);
-  if (total < DUR * FPS) { console.log(`${key}: 짧은 시험 렌더 — GIF·스틸 생략`); await rm(frames, { recursive: true, force: true }); continue; }
-  // 2막 하이라이트 6초 (22~28초), 640px 15fps
-  ff(['-framerate', String(FPS), '-start_number', String(22 * FPS), '-i', seq, '-frames:v', String(6 * FPS),
-    '-vf', 'fps=15,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle',
-    '-loop', '0', join(out, 'highlight.gif')]);
+  if (total < DUR * FPS - 1) { console.log(`${key}: 짧은 시험 렌더 — GIF·스틸 생략`); await rm(frames, { recursive: true, force: true }); continue; }
+  // 2막 하이라이트: GIF 4초(22~26초, 480px 10fps 48색 ≈3MB) + MP4 미리보기 6초(22~28초, 640px ≈1MB)
+  // 가는 선이 화면 가득 움직이는 장면은 GIF 압축이 잘 안 돼서 크기를 강하게 제한한다
+  const full = join(out, `${key}.mp4`);
+  ff(['-ss', '22', '-t', '4', '-i', full, '-vf', 'fps=10,scale=480:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=48:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle', '-loop', '0', join(out, 'highlight.gif')]);
+  ff(['-ss', '22', '-t', '6', '-i', full, '-an', '-vf', 'scale=640:-1', '-c:v', 'libx264', '-crf', '28', '-preset', 'slow', '-movflags', '+faststart', join(out, 'preview.mp4')]);
   for (const [k, sec] of [[1, 9], [2, 25], [3, 41.5]]) {
     ff(['-i', join(frames, `${String(Math.round(sec * FPS)).padStart(4, '0')}.png`), '-q:v', '3', join(out, `act${k}.jpg`)]);
   }

@@ -9,6 +9,9 @@ playwright-report
 # media-art: 라운드별 개별 스크린샷은 올리지 않음(접촉 시트만)
 media-art/shots/**/*.png
 media-art/_*.html
-media-art/renders/**/*.mp4
+media-art/renders/forest/forest.mp4
+media-art/renders/sea/sea.mp4
+media-art/renders/space/space.mp4
+media-art/renders/flower/flower.mp4
 media-art/renders/**/frames/
 media-art/renders.log

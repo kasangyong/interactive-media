@@ -43,10 +43,10 @@ async function officialItems() {
     const dir = join(ROOT, 'renders', key);
     if (!(await exists(dir))) continue;
     const files = [];
-    for (const f of [`${key}.mp4`, 'highlight.gif', 'act1.jpg', 'act2.jpg', 'act3.jpg']) {
+    for (const f of [`${key}.mp4`, 'preview.mp4', 'highlight.gif', 'act1.jpg', 'act2.jpg', 'act3.jpg']) {
       if (await exists(join(dir, f))) files.push({ name: f, url: `/files/renders/${key}/${f}`, kind: KIND(extname(f)) });
     }
-    if (files.length) items.push({ id: `render-${key}`, official: true, title: `${title} — 렌더`, author: '자동 렌더', theme, note: '48초 MP4(로컬 전용) · 2막 하이라이트 GIF · 막별 스틸', files, preview: files.find((f) => f.name === 'highlight.gif')?.url ?? files.find((f) => f.kind === 'image')?.url ?? null });
+    if (files.length) items.push({ id: `render-${key}`, official: true, title: `${title} — 렌더`, author: '자동 렌더', theme, note: '48초 원본 MP4(렌더한 PC에만) · 2막 미리보기 MP4·GIF · 막별 스틸', files, preview: files.find((f) => f.name === 'highlight.gif')?.url ?? files.find((f) => f.kind === 'image')?.url ?? null });
   }
   return items;
 }
