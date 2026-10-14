@@ -2,7 +2,7 @@
 
 전시장 벽면 LED·프로젝션에 상영될 **실시간 인터랙티브 미디어아트**의 방향을 정하는 웹 시제품입니다. 숲 / 바다 / 우주 / 꽃밭 네 작품이 각각 48초, 3막으로 하나의 생각을 이야기하고, 관람객의 손(마우스·터치)에 반응합니다. 최종 구현은 Unreal Engine 5이며, 이 시제품은 UE 8개 표현 계열 안에서만 연출합니다([BRIEF.md](BRIEF.md)).
 
-<p align="center"><img src="shots/r9/sheet.jpg" alt="네 작품의 1·2·3막 접촉 시트" width="100%"/></p>
+<p align="center"><img src="shots/r10/sheet.jpg" alt="네 작품의 1·2·3막 접촉 시트" width="100%"/></p>
 <p align="center"><sub>행: 숲 · 바다 · 우주 · 꽃밭 / 열: 1막(9초) · 2막(25초) · 3막(41.5초)</sub></p>
 
 ## 보는 법
@@ -42,15 +42,16 @@ npm run media:render -- index.html 1 # 바다만
 
 | 결과 (`renders/<작품>/`) | 내용 | git |
 |---|---|---|
-| `<작품>.mp4` | 48초 전체, 1920×1080 30fps, H.264 | 올리지 않음(용량) — 갤러리에서 보거나 직접 공유 |
-| `highlight.gif` | 2막 22~28초, 640px 15fps | 올림 |
+| `<작품>.mp4` | 48초 전체, 1920×1080 30fps, H.264 (약 35MB) | 올리지 않음(용량) — 렌더한 PC의 갤러리에서 보거나 직접 공유 |
+| `preview.mp4` | 2막 22~28초 미리보기, 640px (약 1MB) | 올림 |
+| `highlight.gif` | 2막 22~26초, 480px 10fps 48색 (약 2~3MB) | 올림 |
 | `act1.jpg` ~ `act3.jpg` | 막별 스틸 1920×1080 (9초 · 25초 · 41.5초) | 올림 |
 
 ## 파일
 
 | 파일 | 내용 |
 |---|---|
-| [index.html](index.html) | **현재 작품** (Codex 제작, 9라운드) |
+| [index.html](index.html) | **현재 작품** (Codex 제작, 10라운드) |
 | [NOTES.md](NOTES.md) | 작품별 요약 표: 컨셉 · 손의 의미 · 3막 · 시각 언어 · UE 계열 · 손 반응 수치, 라운드별 변경 이력 |
 | [claude-v2.html](claude-v2.html) | Claude 시안 (비교용) |
 | [BRIEF.md](BRIEF.md) | 브리프 (공개용으로 회사·인명 정보를 뺀 요약) |
@@ -86,6 +87,7 @@ Claude(디렉터) ─ 연출 프롬프트 ─▶ Codex(제작) ─ index.html �
 ```bash
 node media-art/check/shoot.mjs                      # index.html → shots/latest/
 node media-art/check/shoot.mjs claude-v2.html shots/v2
+node media-art/check/profile.mjs media-art/index.html 1 25   # 바다(1) 25초 장면의 병목 프로파일
 ```
 
 ## 라운드 이력
@@ -100,8 +102,9 @@ node media-art/check/shoot.mjs claude-v2.html shots/v2
 | [6](prompts/06_fix.md) | 블랙 레벨 9.4로 복원, 얼룩이 물감 번짐으로. 성능은 더 나빠짐 | 화면 전체 합성을 CSS 레이어로 |
 | [7](prompts/07_perf.md) | 소프트웨어 렌더링 측정에서는 더 느려 보였으나, **실제 GPU(Iris Xe)로 재니 가장 빠름**. 측정 환경을 GPU로 바로잡음 | 바다 2막 29fps |
 | [8](prompts/08_sea.md) | 속도장 격자를 넣었지만 바다 2막 그대로 | 프로파일링 |
-| [9](prompts/09_readback.md) | 프로파일 결과 프레임의 77%가 블룸의 `getImageData`(GPU→CPU 동기 복사). 픽셀 읽기를 없애고 임계값을 CSS 필터로 → 프레임당 JS 17.9ms → 1.0ms. **모든 검증 통과(최저 56fps, 블랙 레벨 5.8)** | — |
+| [9](prompts/09_readback.md) | 프로파일 결과 프레임의 77%가 블룸의 `getImageData`(GPU→CPU 동기 복사). 픽셀 읽기를 없애고 임계값을 CSS 필터로 → 프레임당 JS 17.9ms → 1.0ms. 모든 검증 통과(최저 56fps, 블랙 레벨 5.8) | 1080p 렌더로 보니 숲이 비·바코드처럼 보임 |
+| [10](prompts/10_forest.md) · [10b](prompts/10b_fix.md) · [10c](prompts/10c_trunks.md) | 숲을 **빛줄기와 안개(고모레비)**로 재설계. 실행 오류(`drawImage`)와 딱딱한 나무 기둥 마스크를 고침. 오류 0, 막 점프·시간·모바일·블랙 레벨(4.9) 합격 | — |
 
 ## 남은 과제
-- 숲은 네 작품 중 가장 단순하다. 2막의 "숨이 건너가는 밝은 띠"를 더 분명하게.
+- **바다 2막은 내장 그래픽에서 GPU 한계 장면**이다. JS는 프레임당 약 1.3ms(87% 유휴)인데, 같은 GPU를 쓰는 다른 프로그램 부하에 따라 40~56fps를 오간다(`node media-art/check/profile.mjs media-art/index.html 1 25`로 확인). UE 이식 때 궤적 입자 수(현재 상한 2000)와 잔상 합성 비용을 먼저 잡아야 한다.
 - 실제 손(카메라 추적)이 아닌 마우스로만 검증했다. UE 이식 전 손 반응 수치는 전시장 거리·해상도 기준으로 다시 잡아야 한다.
