@@ -125,6 +125,7 @@ createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://local');
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) return serveFile(req, res, join(ROOT, 'site', 'index.html'));
+    if (req.method === 'GET' && url.pathname === '/showcase') return serveFile(req, res, join(ROOT, 'site', 'showcase.html'));
     if (req.method === 'GET' && url.pathname === '/api/items') return json(res, 200, { official: await officialItems(), gallery: await galleryItems(), themes: THEMES });
     if (req.method === 'POST' && url.pathname === '/api/upload') return handleUpload(req, res);
     if (req.method === 'GET' && url.pathname.startsWith('/files/')) {
@@ -142,4 +143,4 @@ createServer(async (req, res) => {
     console.error(err);
     if (!res.headersSent) json(res, 500, { error: '서버 오류' });
   }
-}).listen(PORT, HOST, () => console.log(`media-art 갤러리: http://${HOST}:${PORT}`));
+}).listen(PORT, HOST, () => console.log(`media-art 갤러리: http://${HOST}:${PORT}  ·  쇼케이스: http://${HOST}:${PORT}/showcase`));
