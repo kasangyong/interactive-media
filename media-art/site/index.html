@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>media-art 갤러리</title>
+<style>
+:root{
+  --bg:#08090c; --panel:#0f1115; --line:#23262d; --ink:#ece9e2; --mute:#8f8b84; --glow:#d8c08a; --err:#e98a7a;
+  --sans:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  --serif:"Nanum Myeongjo","Batang","AppleMyungjo",serif;
+  --mono:ui-monospace,Consolas,"SFMono-Regular",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+body{padding:28px 16px 64px;overflow-x:hidden}
+.wrap{max-width:1240px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mute)}
+h1{font-family:var(--serif);font-size:clamp(26px,4vw,38px);margin:4px 0 0}
+header p{margin:6px 0 0;color:var(--mute);max-width:60ch}
+.btn{all:unset;cursor:pointer;padding:9px 16px;border:1px solid var(--ink);font-size:14px}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn:focus-visible,.chip:focus-visible,.card:focus-visible{outline:1px solid var(--glow);outline-offset:3px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 26px}
+.chip{all:unset;cursor:pointer;padding:5px 12px;border:1px solid var(--line);font-size:13px;color:var(--mute)}
+.chip[aria-pressed="true"]{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mute);font-weight:400;margin:34px 0 12px;display:flex;gap:10px;align-items:center}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.card{all:unset;cursor:pointer;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);transition:border-color .2s}
+.card:hover{border-color:#3a3e48}
+.thumb{aspect-ratio:16/9;background:#000;display:grid;place-items:center;overflow:hidden;position:relative}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .ph{font-family:var(--mono);font-size:12px;color:var(--mute)}
+.badge{position:absolute;left:8px;top:8px;font-family:var(--mono);font-size:10px;padding:2px 7px;background:rgba(0,0,0,.6);border:1px solid var(--line)}
+.meta{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.meta b{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta span{font-size:12px;color:var(--mute);font-family:var(--mono)}
+.empty{color:var(--mute);border:1px dashed var(--line);padding:28px;text-align:center}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:0;width:min(1100px,calc(100vw - 24px));max-height:calc(100vh - 24px)}
+dialog::backdrop{background:rgba(0,0,0,.75)}
+.dlg-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--line)}
+.dlg-head h3{margin:0;font-family:var(--serif);font-size:22px}
+.dlg-head p{margin:4px 0 0;color:var(--mute);font-size:13px}
+.x{all:unset;cursor:pointer;font-family:var(--mono);padding:4px 8px;border:1px solid var(--line)}
+.view{background:#000;aspect-ratio:16/9;max-height:70vh;width:100%}
+.view iframe,.view video,.view img{width:100%;height:100%;border:0;display:block;object-fit:contain;background:#000}
+.files{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 16px}
+.files button,.files a{all:unset;cursor:pointer;font-family:var(--mono);font-size:12px;padding:5px 10px;border:1px solid var(--line);color:var(--mute)}
+.files button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+form{display:grid;gap:14px;padding:18px}
+label{display:grid;gap:6px;font-size:13px;color:var(--mute)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:9px 10px;width:100%}
+textarea{min-height:76px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.drop{border:1px dashed #3a3e48;padding:22px;text-align:center;color:var(--mute);cursor:pointer}
+.drop.over{border-color:var(--glow);color:var(--ink)}
+.drop ul{list-style:none;margin:10px 0 0;padding:0;font-family:var(--mono);font-size:12px;color:var(--ink);text-align:left}
+.bar{height:2px;background:var(--line)}.bar i{display:block;height:100%;width:0;background:var(--glow);transition:width .1s}
+.msg{min-height:1.4em;font-size:13px}.msg.err{color:var(--err)}.msg.ok{color:var(--glow)}
+.help{font-size:12px;color:var(--mute);margin:0}
+@media (max-width:600px){.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">MEDIA-ART · 팀 갤러리</div>
+      <h1>추상의 네 장면, 그리고 우리가 만든 것들</h1>
+      <p>작품을 올리면 <code>media-art/gallery/</code>에 저장되고 autocommit이 저장소에 올립니다. 다른 사람의 작품은 <code>git pull</code> 뒤 새로고침하면 보입니다.</p>
+    </div>
+    <button class="btn primary" id="openUpload" type="button">작품 올리기</button>
+  </header>
+
+  <div class="chips" id="chips" aria-label="테마 거르기"></div>
+
+  <h2>공식 결과물</h2>
+  <div class="grid" id="official"></div>
+
+  <h2>팀 업로드</h2>
+  <div class="grid" id="gallery"></div>
+</div>
+
+<dialog id="viewer" aria-labelledby="vTitle">
+  <div class="dlg-head"><div><h3 id="vTitle"></h3><p id="vMeta"></p></div><button class="x" type="button" data-close>닫기</button></div>
+  <div class="view" id="vView"></div>
+  <div class="files" id="vFiles"></div>
+</dialog>
+
+<dialog id="uploader" aria-labelledby="uTitle">
+  <div class="dlg-head"><div><h3 id="uTitle">작품 올리기</h3><p>HTML · MP4 · WebM · MOV · GIF · PNG · JPG · WebP / 파일당 45MB, 최대 6개</p></div><button class="x" type="button" data-close>닫기</button></div>
+  <form id="form">
+    <div class="row2">
+      <label>제목<input name="title" required maxlength="80" placeholder="예: 조류의 기억 — 소용돌이 실험"></label>
+      <label>작성자<input name="author" required maxlength="40" placeholder="이름 또는 닉네임"></label>
+    </div>
+    <label>테마<select name="theme" id="themeSel"></select></label>
+    <label>설명<textarea name="note" maxlength="600" placeholder="컨셉, 손의 의미, 무엇을 시험했는지"></textarea></label>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="파일 선택">파일을 끌어다 놓거나 눌러서 고르세요<ul id="flist"></ul></div>
+    <input type="file" id="fileInput" multiple accept=".html,.mp4,.webm,.mov,.gif,.png,.jpg,.jpeg,.webp" hidden>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="msg" id="msg" role="status"></div>
+    <button class="btn primary" type="submit">올리기</button>
+    <p class="help">올린 HTML은 격리된 화면(iframe)에서 실행됩니다. 큰 영상은 1080p 이하·짧게 줄여 올려 주세요.</p>
+  </form>
+</dialog>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+let data = { official: [], gallery: [], themes: [] }, filter = '전체', picked = [];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtDate = (iso) => iso ? new Date(iso).toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+
+async function load() {
+  data = await (await fetch('/api/items')).json();
+  $('chips').innerHTML = ['전체', ...data.themes].map((t) => `<button class="chip" type="button" aria-pressed="${t === filter}">${t}</button>`).join('');
+  $('themeSel').innerHTML = data.themes.map((t) => `<option>${t}</option>`).join('');
+  render();
+}
+
+function card(item) {
+  const kinds = [...new Set(item.files.map((f) => f.kind))].join(' · ');
+  const pv = item.preview;
+  const isVideo = pv && /\.(mp4|webm|mov)$/i.test(pv);
+  const thumb = pv ? (isVideo ? `<video src="${esc(pv)}#t=1" muted playsinline preload="metadata"></video>` : `<img src="${esc(pv)}" alt="" loading="lazy">`) : `<span class="ph">${esc(kinds)}</span>`;
+  return `<button class="card" type="button" data-id="${esc(item.id)}">
+    <div class="thumb">${thumb}<span class="badge">${esc(item.theme)}</span></div>
+    <div class="meta"><b>${esc(item.title)}</b><span>${esc(item.author)}${item.created ? ' · ' + esc(fmtDate(item.created)) : ''}</span><span>${esc(kinds)}</span></div>
+  </button>`;
+}
+
+function render() {
+  const pass = (i) => filter === '전체' || i.theme === filter;
+  const off = data.official.filter(pass), gal = data.gallery.filter(pass);
+  $('official').innerHTML = off.length ? off.map(card).join('') : '<div class="empty">아직 없습니다. <code>npm run media:render</code>로 렌더를 만들 수 있어요.</div>';
+  $('gallery').innerHTML = gal.length ? gal.map(card).join('') : '<div class="empty">아직 올라온 작품이 없습니다. 첫 작품을 올려 보세요.</div>';
+  [...$('chips').children].forEach((c) => c.setAttribute('aria-pressed', String(c.textContent === filter)));
+}
+
+$('chips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) { filter = b.textContent; render(); } });
+document.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) e.target.closest('dialog').close(); });
+document.querySelectorAll('dialog').forEach((d) => d.addEventListener('close', () => { if (d.id === 'viewer') $('vView').innerHTML = ''; }));
+
+// 카드 미리보기: 영상은 마우스를 올리면 재생
+document.addEventListener('mouseover', (e) => { const v = e.target.closest('.card')?.querySelector('video'); if (v) v.play().catch(() => {}); });
+document.addEventListener('mouseout', (e) => { const v = e.target.closest('.card')?.querySelector('video'); if (v && !e.relatedTarget?.closest?.('.card')) v.pause(); });
+
+function show(item, file) {
+  const v = $('vView');
+  if (file.kind === 'html') v.innerHTML = `<iframe src="${esc(file.url)}" sandbox="allow-scripts" title="${esc(item.title)}"></iframe>`;
+  else if (file.kind === 'video') v.innerHTML = `<video src="${esc(file.url)}" controls autoplay loop playsinline></video>`;
+  else v.innerHTML = `<img src="${esc(file.url)}" alt="${esc(item.title)}">`;
+  [...$('vFiles').querySelectorAll('button')].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.url === file.url)));
+}
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('.card'); if (!c) return;
+  const item = [...data.official, ...data.gallery].find((i) => i.id === c.dataset.id); if (!item) return;
+  $('vTitle').textContent = item.title;
+  $('vMeta').textContent = [item.author, item.theme, fmtDate(item.created), item.note].filter(Boolean).join(' · ');
+  $('vFiles').innerHTML = item.files.map((f) => `<button type="button" data-url="${esc(f.url)}">${esc(f.name)}</button>`).join('') + item.files.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">새 탭 ↗ ${esc(f.name)}</a>`).join('');
+  $('vFiles').onclick = (ev) => { const b = ev.target.closest('button'); if (b) show(item, item.files.find((f) => f.url === b.dataset.url)); };
+  const first = item.files.find((f) => f.kind === 'html') ?? item.files.find((f) => f.kind === 'video') ?? item.files[0];
+  $('viewer').showModal(); show(item, first);
+});
+
+// 업로드
+$('openUpload').addEventListener('click', () => { $('msg').textContent = ''; $('prog').style.width = '0'; $('uploader').showModal(); });
+const listFiles = () => { $('flist').innerHTML = picked.map((f) => `<li>${esc(f.name)} · ${(f.size / 1048576).toFixed(1)}MB</li>`).join(''); };
+$('drop').addEventListener('click', () => $('fileInput').click());
+$('drop').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('fileInput').click(); } });
+$('fileInput').addEventListener('change', (e) => { picked = [...e.target.files]; listFiles(); });
+['dragenter', 'dragover'].forEach((t) => $('drop').addEventListener(t, (e) => { e.preventDefault(); $('drop').classList.add('over'); }));
+['dragleave', 'drop'].forEach((t) => $('drop').addEventListener(t, (e) => { e.preventDefault(); $('drop').classList.remove('over'); }));
+$('drop').addEventListener('drop', (e) => { picked = [...e.dataTransfer.files]; listFiles(); });
+
+$('form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const msg = $('msg'); msg.className = 'msg';
+  if (!picked.length) { msg.classList.add('err'); msg.textContent = '파일을 하나 이상 골라 주세요'; return; }
+  const fd = new FormData($('form'));
+  picked.forEach((f) => fd.append('files', f));
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/upload');
+  xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) $('prog').style.width = `${(ev.loaded / ev.total) * 100}%`; };
+  xhr.onload = async () => {
+    let r = {}; try { r = JSON.parse(xhr.responseText); } catch { /* 빈 응답 */ }
+    if (xhr.status === 200 && r.ok) {
+      msg.classList.add('ok'); msg.textContent = '올렸습니다. autocommit이 곧 저장소에 커밋·푸시합니다.';
+      $('form').reset(); picked = []; listFiles(); await load();
+    } else { msg.classList.add('err'); msg.textContent = r.error || `업로드 실패 (${xhr.status})`; }
+  };
+  xhr.onerror = () => { msg.classList.add('err'); msg.textContent = '서버에 연결하지 못했습니다'; };
+  xhr.send(fd);
+});
+
+load();
+</script>
+</body>
+</html>

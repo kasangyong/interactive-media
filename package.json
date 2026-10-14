@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "media:gallery": "node media-art/site/server.mjs",
+    "media:check": "node media-art/check/shoot.mjs",
+    "media:render": "node media-art/check/render.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
