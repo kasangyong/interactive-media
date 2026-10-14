@@ -35,7 +35,7 @@ const stamp = () => { const d = new Date(), z = (n) => String(n).padStart(2, '0'
 /** 공식 결과물: 현재 작품, 시안, 렌더(renders/<작품>/) */
 async function officialItems() {
   const items = [
-    { id: 'official-index', official: true, title: '추상의 네 장면 (현재 작품)', author: 'Codex · Claude', theme: '기타', note: '숲·바다·우주·꽃밭 48초 × 4. 손(마우스)으로 반응합니다.', files: [{ name: 'index.html', url: '/files/index.html', kind: 'html' }], preview: '/files/shots/r4/sheet.jpg' },
+    { id: 'official-index', official: true, title: '추상의 네 장면 (현재 작품)', author: 'Codex · Claude', theme: '기타', note: '숲·바다·우주·꽃밭 48초 × 4. 손(마우스)으로 반응합니다.', files: [{ name: 'index.html', url: '/files/index.html', kind: 'html' }], preview: '/files/shots/r10/sheet.jpg' },
     { id: 'official-v2', official: true, title: 'Claude 시안 v2', author: 'Claude', theme: '기타', note: '비교용 시안', files: [{ name: 'claude-v2.html', url: '/files/claude-v2.html', kind: 'html' }], preview: null },
   ];
   const names = { forest: ['숲', '숨을 쉬는 숲'], sea: ['바다', '조류의 기억'], space: ['우주', '중력의 편지'], flower: ['꽃밭', '피었다 지는 시간'] };
